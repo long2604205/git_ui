@@ -1,54 +1,192 @@
 <template>
   <div class="container-fluid main-container">
-<!--    <button-->
-<!--      class="btn workspace-floating-toggle"-->
-<!--      @click="toggleWorkspacePanel"-->
-<!--    >-->
-<!--      <i :class="['fas', isWorkspaceCollapsed ? 'fa-chevron-right' : 'fa-chevron-left']"></i>-->
-<!--    </button>-->
-    <panda-repository-workspace
-      :repositories="repositories"
-      :active-repository="activeRepository"
-      :collapsed="isWorkspaceCollapsed"
-      @set-active-repo="setActiveRepository"
-      @remove-repo="removeRepository"
-      @toggle-workspace="toggleWorkspacePanel"
-    />
+    <div class="row h-100">
+      <panda-repository-workspace
+        :repositories="repositories"
+        :active-repository="activeRepository"
+        :collapsed="isWorkspaceCollapsed"
+        @set-active-repo="setActiveRepository"
+        @remove-repo="removeRepository"
+        @toggle-workspace="toggleWorkspacePanel"
+      />
+
+      <panda-left-sidebar
+        :collapsed="isGitCollapsed"
+        @toggle-git="toggleGitPanel"
+      />
+    </div>
   </div>
 </template>
 <script setup>
 import PandaRepositoryWorkspace from '@/components/PandaRepositoryWorkspace.vue'
 import { ref } from 'vue'
+import PandaLeftSidebar from '@/components/PandaLeftSidebar.vue'
 
 const repositories = ref([
   {
     id: 'repo1',
-    name: 'My Project A',
-    path: '/projects/my-project-a',
+    name: 'Project Alpha',
+    path: '/projects/project-alpha',
     status: 'clean',
     currentBranch: 'main',
     changes: []
   },
   {
     id: 'repo2',
-    name: 'Another Repo',
-    path: '/projects/another-repo',
+    name: 'Marketing Site',
+    path: '/projects/marketing-site',
     status: 'dirty',
     currentBranch: 'dev',
-    changes: ['file1.js']
+    changes: ['home.vue', 'about.vue']
   },
   {
     id: 'repo3',
-    name: 'Old Repo',
-    path: '/projects/old-repo',
+    name: 'Internal Tools',
+    path: '/projects/internal-tools',
     status: 'untracked',
-    currentBranch: 'feature-xyz',
-    changes: ['index.html', 'style.css']
+    currentBranch: 'feature-login',
+    changes: ['login.js', 'auth.js']
+  },
+  {
+    id: 'repo4',
+    name: 'Legacy Codebase',
+    path: '/projects/legacy-code',
+    status: 'clean',
+    currentBranch: 'main',
+    changes: []
+  },
+  {
+    id: 'repo5',
+    name: 'Finance Dashboard',
+    path: '/projects/finance-dashboard',
+    status: 'dirty',
+    currentBranch: 'hotfix-graph',
+    changes: ['graph.js']
+  },
+  {
+    id: 'repo6',
+    name: 'Ecommerce Platform',
+    path: '/projects/ecommerce',
+    status: 'clean',
+    currentBranch: 'release-v2',
+    changes: []
+  },
+  {
+    id: 'repo7',
+    name: 'Analytics Engine',
+    path: '/projects/analytics',
+    status: 'untracked',
+    currentBranch: 'experiment-ai',
+    changes: ['ai.js', 'metrics.js']
+  },
+  {
+    id: 'repo8',
+    name: 'Game Prototype',
+    path: '/projects/game-prototype',
+    status: 'dirty',
+    currentBranch: 'dev',
+    changes: ['player.ts']
+  },
+  {
+    id: 'repo9',
+    name: 'Blog System',
+    path: '/projects/blog',
+    status: 'clean',
+    currentBranch: 'main',
+    changes: []
+  },
+  {
+    id: 'repo10',
+    name: 'Booking App',
+    path: '/projects/booking-app',
+    status: 'dirty',
+    currentBranch: 'refactor-api',
+    changes: ['api.js', 'utils.js']
+  },
+  {
+    id: 'repo11',
+    name: 'Design System',
+    path: '/projects/design-system',
+    status: 'clean',
+    currentBranch: 'main',
+    changes: []
+  },
+  {
+    id: 'repo12',
+    name: 'Admin Panel',
+    path: '/projects/admin-panel',
+    status: 'untracked',
+    currentBranch: 'feature-tables',
+    changes: ['table.vue', 'filter.vue']
+  },
+  {
+    id: 'repo13',
+    name: 'Microservice Auth',
+    path: '/projects/auth-service',
+    status: 'dirty',
+    currentBranch: 'dev',
+    changes: ['auth.ts']
+  },
+  {
+    id: 'repo14',
+    name: 'Chatbot',
+    path: '/projects/chatbot',
+    status: 'clean',
+    currentBranch: 'main',
+    changes: []
+  },
+  {
+    id: 'repo15',
+    name: 'Client Website',
+    path: '/projects/client-website',
+    status: 'dirty',
+    currentBranch: 'client-fixes',
+    changes: ['index.html', 'styles.css']
+  },
+  {
+    id: 'repo16',
+    name: 'Portfolio Site',
+    path: '/projects/portfolio',
+    status: 'untracked',
+    currentBranch: 'feature-gallery',
+    changes: ['gallery.vue']
+  },
+  {
+    id: 'repo17',
+    name: 'CRM System',
+    path: '/projects/crm',
+    status: 'clean',
+    currentBranch: 'main',
+    changes: []
+  },
+  {
+    id: 'repo18',
+    name: 'Mobile App',
+    path: '/projects/mobile-app',
+    status: 'dirty',
+    currentBranch: 'ios-tweak',
+    changes: ['App.swift']
+  },
+  {
+    id: 'repo19',
+    name: 'Scheduler',
+    path: '/projects/scheduler',
+    status: 'untracked',
+    currentBranch: 'feature-calendar',
+    changes: ['calendar.js', 'event.js']
+  },
+  {
+    id: 'repo20',
+    name: 'Video Platform',
+    path: '/projects/video-platform',
+    status: 'clean',
+    currentBranch: 'main',
+    changes: []
   }
-])
-
+]);
 const activeRepository = ref(null)
 const isWorkspaceCollapsed = ref(false)
+const isGitCollapsed = ref(false)
 
 function setActiveRepository(repo) {
   activeRepository.value = repo
@@ -64,33 +202,14 @@ function removeRepository(repo) {
 function toggleWorkspacePanel() {
   isWorkspaceCollapsed.value = !isWorkspaceCollapsed.value
 }
+
+function toggleGitPanel() {
+  isGitCollapsed.value = !isGitCollapsed.value
+}
 </script>
 <style scoped>
 .main-container {
   height: calc(100vh - 56px);
   padding: 0;
 }
-.workspace-floating-toggle {
-  position: absolute;
-  top: 56px;
-  left: 0;
-  z-index: 1000;
-  background-color: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
-  color: var(--text-secondary);
-  width: 24px;
-  height: 36px;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-top-right-radius: 4px;
-  border-bottom-right-radius: 4px;
-  transition: background 0.2s ease;
-}
-.workspace-floating-toggle:hover {
-  background-color: var(--bg-hover);
-  color: var(--text-primary);
-}
-
 </style>

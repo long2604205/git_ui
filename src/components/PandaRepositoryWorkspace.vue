@@ -3,15 +3,27 @@
     <div class="workspace-panel">
       <!-- Header -->
       <div class="workspace-header">
-        <h6 class="mb-0">
-          <i class="fas fa-th-large me-2"></i>Workspace
-        </h6>
-        <button class="btn btn-sm workspace-toggle" @click="$emit('toggle-workspace')">
-          <i :class="['fas', collapsed ? 'fa-chevron-right' : 'fa-chevron-left']"></i>
-        </button>
+        <h6 class="mb-0">Repositories</h6>
+        <div class="workspace-toggle">
+          <button
+            class="btn btn-sm workspace-action"
+            v-if="showActions"
+          >
+            <i class="fa-solid fa-plus"></i>
+          </button>
+          <button
+            class="btn btn-sm workspace-action"
+            v-if="showActions"
+          >
+            <i class="fa-solid fa-ellipsis-vertical"></i>
+          </button>
+          <button class="btn btn-sm workspace-action" @click="$emit('toggle-workspace')">
+            <i :class="['fas', collapsed ? 'fa-solid fa-layer-group' : 'fa-solid fa-minus']"></i>
+          </button>
+        </div>
       </div>
 
-      <!-- Danh sách repository -->
+      <!-- repository list -->
       <div class="workspace-content">
         <div class="workspace-repos">
           <template v-if="repositories.length === 0">
@@ -44,26 +56,42 @@
                   :title="repo.status"
                 ></i>
               </div>
-              <div class="repo-actions">
-                <button
-                  class="repo-action-btn"
-                  title="Close Repository"
-                  @click.stop="onCloseRepo(repo)"
-                >
-                  <i class="fas fa-times"></i>
-                </button>
-              </div>
             </div>
           </template>
         </div>
       </div>
+
+      <div class="workspace-header">
+        <h6 class="mb-0">Branches</h6>
+        <div class="workspace-toggle">
+          <button
+            class="btn btn-sm workspace-action"
+            v-if="showActions"
+          >
+            <i class="fa-solid fa-plus"></i>
+          </button>
+          <button
+            class="btn btn-sm workspace-action"
+            v-if="showActions"
+          >
+            <i class="fa-solid fa-ellipsis-vertical"></i>
+          </button>
+        </div>
+      </div>
+      <div>
+        <input placeholder="Search">
+      </div>
+      <div class="workspace-content">
+        <h1>Git</h1>
+      </div>
     </div>
   </div>
 </template>
-
 <script setup>
 // Props
-defineProps({
+import { ref, watch } from 'vue'
+
+const props = defineProps({
   repositories: {
     type: Array,
     default: () => []
@@ -73,6 +101,18 @@ defineProps({
 })
 // Emits
 const emit = defineEmits(['set-active-repo', 'remove-repo', 'toggle-workspace'])
+const showActions = ref(true);
+
+// Watch
+watch(() => props.collapsed, (newVal) => {
+  if (!newVal) {
+    setTimeout(() => {
+      showActions.value = true;
+    }, 300);
+  } else {
+    showActions.value = false;
+  }
+});
 
 // Methods
 const onRepoClick = (repo) => {
@@ -103,11 +143,13 @@ const getStatusColor = (status) => {
 </script>
 <style scoped>
 .workspace-container {
-  width: 250px;
+  width: 280px;
   height: 100%;
   background-color: var(--bg-secondary);
   border-right: 1px solid var(--border-color);
-  transition: width 0.3s ease;
+  transition: width 0.5s ease;
+  overflow: hidden;
+  padding-right: 0;
 }
 
 .workspace-container.collapsed {
@@ -132,7 +174,7 @@ const getStatusColor = (status) => {
 }
 
 .workspace-header h6 {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
   margin: 0;
 }
@@ -142,10 +184,8 @@ const getStatusColor = (status) => {
   right: 4px;
   top: 50%;
   transform: translateY(-50%);
-  background: transparent;
   border: none;
-  color: var(--text-secondary);
-  font-size: 12px;
+  font-size: 14px;
   z-index: 10;
 }
 
@@ -160,12 +200,6 @@ const getStatusColor = (status) => {
 
 .workspace-repos {
   padding: 8px;
-}
-
-.workspace-container {
-  width: 280px;
-  transition: width 0.3s ease;
-  overflow: hidden;
 }
 
 .workspace-container.collapsed {
@@ -188,6 +222,13 @@ const getStatusColor = (status) => {
   visibility: hidden;
   height: 0;
   pointer-events: none;
+}
+
+.workspace-action {
+  margin: 0;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
 }
 
 /* Utility Classes */
@@ -216,12 +257,12 @@ const getStatusColor = (status) => {
 
 .repo-item:hover {
   background-color: var(--bg-hover);
+  border-radius: 15px;
 }
 
 .repo-item.active {
-  background-color: var(--accent-primary);
-  color: var(--bg-primary);
-  border-color: var(--accent-primary);
+  background-color: var(--bg-hover);
+  border-radius: 15px;
 }
 
 .repo-icon {
@@ -236,7 +277,7 @@ const getStatusColor = (status) => {
 }
 
 .repo-name {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
@@ -244,37 +285,10 @@ const getStatusColor = (status) => {
 }
 
 .repo-path {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.repo-actions {
-  display: flex;
-  gap: 4px;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.repo-item:hover .repo-actions {
-  opacity: 1;
-}
-
-.repo-action-btn {
-  background: transparent;
-  border: none;
-  color: var(--text-secondary);
-  font-size: 10px;
-  width: 20px;
-  height: 20px;
-  border-radius: 2px;
-  transition: all 0.2s ease;
-}
-
-.repo-action-btn:hover {
-  background-color: var(--bg-hover);
-  color: var(--text-primary);
 }
 </style>

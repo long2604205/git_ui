@@ -7,7 +7,6 @@ import PandaFooter from '@/components/PandaFooter.vue'
 <template>
   <!-- Top Navbar with Dropdown Menus -->
   <panda-navigation/>
-
   <panda-default-content/>
 
   <panda-footer/>

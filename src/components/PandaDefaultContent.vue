@@ -22,7 +22,6 @@
 <script setup>
 import PandaRepositoryWorkspace from '@/components/PandaRepositoryWorkspace.vue'
 import { ref } from 'vue'
-import PandaLeftSidebar from '@/components/PandaLeftSidebar.vue'
 import PandaRightPanel from '@/components/PandaRightPanel.vue'
 
 const panelCollapsed = ref(false)
@@ -219,9 +218,6 @@ function toggleWorkspacePanel() {
   isWorkspaceCollapsed.value = !isWorkspaceCollapsed.value
 }
 
-function toggleGitPanel() {
-  isGitCollapsed.value = !isGitCollapsed.value
-}
 </script>
 <style scoped>
 .main-container {

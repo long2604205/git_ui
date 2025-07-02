@@ -1,52 +1,53 @@
 <template>
-  <div class="col-auto right-panel" :class="{ collapsed: isCollapsed }">
-    <div class="commit-details">
-      <!-- Header -->
-      <div class="details-header">
-        <h6 class="mb-0">
-          Commit Details
-        </h6>
-        <div class="workspace-toggle">
-          <button class="btn btn-sm panel-action-btn" @click="$emit('toggle')">
-            <i :class="['fas', isCollapsed ? 'fa-brands fa-github' : 'fa-solid fa-minus']"></i>
-          </button>
-        </div>
-      </div>
+  <div class="right-panel-wrapper" :style="{ width: containerWidth + 'px' }">
+    <!-- Thanh kéo nằm bên trái panel -->
+    <div class="resizer-horizontal" @mousedown="startResizeContainer" v-if="!isCollapsed"></div>
 
-      <!-- Content -->
-      <div class="details-content">
-        <!-- No commit selected -->
-        <div v-if="!commit" class="no-selection text-center py-4">
-          <i class="fas fa-mouse-pointer fa-2x mb-2"></i>
-          <p>No selection</p>
-          <small>Select a commit or file to view details</small>
+    <!-- Panel nội dung -->
+    <div class="right-panel" :class="{ collapsed: isCollapsed }">
+      <div class="commit-details">
+        <!-- Header -->
+        <div class="details-header">
+          <h6 class="mb-0">Commit Details</h6>
+          <div class="workspace-toggle">
+            <button class="btn btn-sm panel-action-btn" @click="$emit('toggle')">
+              <i :class="['fas', isCollapsed ? 'fa-brands fa-github' : 'fa-solid fa-minus']"></i>
+            </button>
+          </div>
         </div>
 
-        <!-- Commit details -->
-        <div v-else>
-          <div class="commit-details-header">
-            <h6>{{ commit.message }}</h6>
-            <div class="commit-meta">
-              <div><strong>Hash:</strong> {{ commit.hash }}</div>
-              <div><strong>Author:</strong> {{ commit.author }}</div>
-              <div><strong>Email:</strong> {{ commit.email }}</div>
-              <div><strong>Date:</strong> {{ formatDate(commit.time) }}</div>
-              <div><strong>Branch:</strong> {{ commit.branch }}</div>
-            </div>
+        <!-- Content -->
+        <div class="details-content">
+          <div v-if="!commit" class="no-selection text-center py-4">
+            <i class="fas fa-mouse-pointer fa-2x mb-2"></i>
+            <p>No selection</p>
+            <small>Select a commit or file to view details</small>
           </div>
 
-          <!-- Changed files -->
-          <div class="changed-files">
-            <h6>Changed Files ({{ commit.files.length }})</h6>
-            <ul class="list-group list-group-flush">
-              <li
-                v-for="(file, index) in commit.files"
-                :key="index"
-                class="list-group-item px-0 py-1"
-              >
-                <i class="fas fa-file-alt me-2 text-secondary"></i>{{ file }}
-              </li>
-            </ul>
+          <div v-else>
+            <div class="commit-details-header">
+              <h6>{{ commit.message }}</h6>
+              <div class="commit-meta">
+                <div><strong>Hash:</strong> {{ commit.hash }}</div>
+                <div><strong>Author:</strong> {{ commit.author }}</div>
+                <div><strong>Email:</strong> {{ commit.email }}</div>
+                <div><strong>Date:</strong> {{ formatDate(commit.time) }}</div>
+                <div><strong>Branch:</strong> {{ commit.branch }}</div>
+              </div>
+            </div>
+
+            <div class="changed-files">
+              <h6>Changed Files ({{ commit.files.length }})</h6>
+              <ul class="list-group list-group-flush">
+                <li
+                  v-for="(file, index) in commit.files"
+                  :key="index"
+                  class="list-group-item px-0 py-1"
+                >
+                  <i class="fas fa-file-alt me-2 text-secondary"></i>{{ file }}
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
@@ -55,9 +56,26 @@
 </template>
 
 <script setup>
-defineProps({
+import { ref, watch } from 'vue'
+
+const props = defineProps({
   commit: Object,
   isCollapsed: Boolean
+})
+
+const emit = defineEmits(['toggle'])
+
+const containerWidth = ref(300)
+const previousWidth = ref(300)
+let isResizing = false
+
+watch(() => props.isCollapsed, (val) => {
+  if (val) {
+    previousWidth.value = containerWidth.value
+    containerWidth.value = 50
+  } else {
+    containerWidth.value = previousWidth.value || 300
+  }
 })
 
 function formatDate(timestamp) {
@@ -65,17 +83,56 @@ function formatDate(timestamp) {
   const date = new Date(timestamp)
   return date.toLocaleString()
 }
+
+const startResizeContainer = (e) => {
+  if (props.isCollapsed) return
+  isResizing = true
+  window.addEventListener('mousemove', resizeContainer)
+  window.addEventListener('mouseup', stopResizeContainer)
+}
+
+const resizeContainer = (e) => {
+  if (!isResizing) return
+  const windowWidth = window.innerWidth
+  const newWidth = windowWidth - e.clientX
+  containerWidth.value = Math.min(Math.max(newWidth, 250), 800)
+}
+
+const stopResizeContainer = () => {
+  isResizing = false
+  window.removeEventListener('mousemove', resizeContainer)
+  window.removeEventListener('mouseup', stopResizeContainer)
+}
 </script>
+
 <style scoped>
-.right-panel {
+.right-panel-wrapper {
+  display: flex;
+  flex-direction: row;
   width: 300px;
-  background-color: var(--bg-secondary);
-  border-left: 1px solid var(--border-color);
+  min-width: 50px;
+  max-width: 800px;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
   padding: 0;
 }
 
-.right-panel.collapsed {
-  width: 50px;
+/* Thanh kéo nằm bên trái */
+.resizer-horizontal {
+  width: 5px;
+  cursor: col-resize;
+  background-color: var(--border-color);
+  user-select: none;
+}
+
+/* Nội dung panel */
+.right-panel {
+  width: 100%;
+  background-color: var(--bg-secondary);
+  border-left: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
 }
 
@@ -88,7 +145,6 @@ function formatDate(timestamp) {
 }
 
 .right-panel.collapsed .details-header h6 {
-  padding: 10px;
   display: none;
 }
 
@@ -106,7 +162,6 @@ function formatDate(timestamp) {
   background-color: var(--bg-tertiary);
   border-bottom: 1px solid var(--border-color);
   height: 36px;
-  min-height: 36px;
 }
 
 .details-header h6 {
@@ -126,13 +181,11 @@ function formatDate(timestamp) {
   padding-bottom: 12px;
   margin-bottom: 16px;
 }
-
 .commit-details-header h6 {
   font-size: 14px;
   margin-bottom: 8px;
   word-wrap: break-word;
 }
-
 .commit-meta {
   font-size: 11px;
   color: var(--text-muted);
@@ -144,13 +197,11 @@ function formatDate(timestamp) {
   margin-bottom: 12px;
   color: var(--text-secondary);
 }
-
 .changed-files ul {
   padding-left: 0;
   list-style: none;
   margin: 0;
 }
-
 .list-group-item {
   background-color: transparent;
   border: none;
@@ -160,12 +211,10 @@ function formatDate(timestamp) {
 
 .panel-action-btn {
   font-size: 14px;
-  margin: 0;
   background: transparent;
   border: none;
   color: var(--text-secondary);
 }
-
 .workspace-toggle {
   right: 4px;
   top: 50%;
@@ -174,13 +223,12 @@ function formatDate(timestamp) {
   z-index: 10;
 }
 
-/* Utility Classes */
+/* No commit */
 .no-selection {
   text-align: center;
   color: var(--text-muted);
   padding: 32px 16px;
 }
-
 .no-selection i {
   display: block;
   margin-bottom: 12px;

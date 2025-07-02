@@ -4,11 +4,13 @@
       <!-- Header -->
       <div class="details-header">
         <h6 class="mb-0">
-          <i class="fas fa-info-circle me-2"></i>Details
+          Commit Details
         </h6>
-        <button class="btn btn-sm panel-action-btn" @click="$emit('toggle')">
-          <i class="fas fa-chevron-right"></i>
-        </button>
+        <div class="workspace-toggle">
+          <button class="btn btn-sm panel-action-btn" @click="$emit('toggle')">
+            <i :class="['fas', isCollapsed ? 'fa-brands fa-github' : 'fa-solid fa-minus']"></i>
+          </button>
+        </div>
       </div>
 
       <!-- Content -->
@@ -81,6 +83,10 @@ function formatDate(timestamp) {
   display: none;
 }
 
+.right-panel.collapsed .details-header {
+  justify-content: center;
+}
+
 .right-panel.collapsed .details-header h6 {
   padding: 10px;
   display: none;
@@ -99,7 +105,8 @@ function formatDate(timestamp) {
   padding: 8px 12px;
   background-color: var(--bg-tertiary);
   border-bottom: 1px solid var(--border-color);
-  min-height: 32px;
+  height: 36px;
+  min-height: 36px;
 }
 
 .details-header h6 {
@@ -147,9 +154,26 @@ function formatDate(timestamp) {
 .list-group-item {
   background-color: transparent;
   border: none;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-primary);
 }
+
+.panel-action-btn {
+  font-size: 14px;
+  margin: 0;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+}
+
+.workspace-toggle {
+  right: 4px;
+  top: 50%;
+  border: none;
+  font-size: 14px;
+  z-index: 10;
+}
+
 /* Utility Classes */
 .no-selection {
   text-align: center;

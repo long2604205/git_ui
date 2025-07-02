@@ -327,10 +327,6 @@ const stopResizeContainer = () => {
   transform: translate(50%, -50%);
 }
 
-.workspace-container .workspace-header h6,
-.workspace-container .workspace-content {
-}
-
 .workspace-container.collapsed .workspace-header h6,
 .workspace-container.collapsed .workspace-content {
   opacity: 0;

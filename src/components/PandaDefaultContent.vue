@@ -1,22 +1,21 @@
 <template>
   <div class="container-fluid main-container">
-    <div class="row h-100">
+    <div class="row main-layout-container h-100">
       <panda-repository-workspace
-        :repositories="repositories"
+        :repositories="[]"
         :active-repository="activeRepository"
         :collapsed="isWorkspaceCollapsed"
         @set-active-repo="setActiveRepository"
         @remove-repo="removeRepository"
         @toggle-workspace="toggleWorkspacePanel"
       />
-
-      <panda-left-sidebar
-        :collapsed="isGitCollapsed"
-        @toggle-git="toggleGitPanel"
-      />
       <div class="col main-content">
       </div>
-      <panda-right-panel/>
+      <panda-right-panel
+        :commit="commitData"
+        :is-collapsed="panelCollapsed"
+        @toggle="panelCollapsed = !panelCollapsed"
+      />
     </div>
   </div>
 </template>
@@ -26,6 +25,7 @@ import { ref } from 'vue'
 import PandaLeftSidebar from '@/components/PandaLeftSidebar.vue'
 import PandaRightPanel from '@/components/PandaRightPanel.vue'
 
+const panelCollapsed = ref(false)
 const repositories = ref([
   {
     id: 'repo1',
@@ -191,7 +191,19 @@ const repositories = ref([
 const activeRepository = ref(null)
 const isWorkspaceCollapsed = ref(false)
 const isGitCollapsed = ref(false)
-
+const commitData = {
+  message: 'Fix login validation and update UI',
+  hash: '7f3a9e2',
+  author: 'Nguyen Van A',
+  email: 'nva@example.com',
+  time: '2025-07-01T14:30:00Z',
+  branch: 'feature/login-ui',
+  files: [
+    'src/views/LoginView.vue',
+    'src/components/BaseInput.vue',
+    'src/utils/validator.js'
+  ]
+}
 function setActiveRepository(repo) {
   activeRepository.value = repo
 }
@@ -213,9 +225,15 @@ function toggleGitPanel() {
 </script>
 <style scoped>
 .main-container {
+  background: var(--bg-primary);
   height: calc(100vh - 56px);
   padding: 0;
 }
+
+.main-layout-container {
+  margin-right: 0;
+}
+
 .main-content {
   display: flex;
   flex-direction: column;

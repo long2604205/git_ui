@@ -1,38 +1,89 @@
 <template>
-  <div class="col-auto right-panel" id="right-panel">
+  <div class="col-auto right-panel" :class="{ collapsed: isCollapsed }">
     <div class="commit-details">
+      <!-- Header -->
       <div class="details-header">
         <h6 class="mb-0">
           <i class="fas fa-info-circle me-2"></i>Details
         </h6>
-        <button class="btn btn-sm panel-action-btn" id="details-toggle">
+        <button class="btn btn-sm panel-action-btn" @click="$emit('toggle')">
           <i class="fas fa-chevron-right"></i>
         </button>
       </div>
-      <div class="details-content" id="details-content">
-        <div class="no-selection text-center text-muted py-4">
+
+      <!-- Content -->
+      <div class="details-content">
+        <!-- No commit selected -->
+        <div v-if="!commit" class="no-selection text-center py-4">
           <i class="fas fa-mouse-pointer fa-2x mb-2"></i>
           <p>No selection</p>
           <small>Select a commit or file to view details</small>
+        </div>
+
+        <!-- Commit details -->
+        <div v-else>
+          <div class="commit-details-header">
+            <h6>{{ commit.message }}</h6>
+            <div class="commit-meta">
+              <div><strong>Hash:</strong> {{ commit.hash }}</div>
+              <div><strong>Author:</strong> {{ commit.author }}</div>
+              <div><strong>Email:</strong> {{ commit.email }}</div>
+              <div><strong>Date:</strong> {{ formatDate(commit.time) }}</div>
+              <div><strong>Branch:</strong> {{ commit.branch }}</div>
+            </div>
+          </div>
+
+          <!-- Changed files -->
+          <div class="changed-files">
+            <h6>Changed Files ({{ commit.files.length }})</h6>
+            <ul class="list-group list-group-flush">
+              <li
+                v-for="(file, index) in commit.files"
+                :key="index"
+                class="list-group-item px-0 py-1"
+              >
+                <i class="fas fa-file-alt me-2 text-secondary"></i>{{ file }}
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </template>
-<script setup>
 
+<script setup>
+defineProps({
+  commit: Object,
+  isCollapsed: Boolean
+})
+
+function formatDate(timestamp) {
+  if (!timestamp) return ''
+  const date = new Date(timestamp)
+  return date.toLocaleString()
+}
 </script>
 <style scoped>
 .right-panel {
-  width: 350px;
+  width: 300px;
   background-color: var(--bg-secondary);
   border-left: 1px solid var(--border-color);
-  transition: width 0.3s ease;
+  padding: 0;
 }
 
 .right-panel.collapsed {
-  width: 0;
+  width: 50px;
   overflow: hidden;
+}
+
+.right-panel.collapsed .details-content {
+  display: none;
+}
+
+.right-panel.collapsed .details-header h6 {
+  padding: 10px;
+  display: none;
 }
 
 .commit-details {
@@ -52,7 +103,7 @@
 }
 
 .details-header h6 {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
   margin: 0;
 }
@@ -82,65 +133,33 @@
 }
 
 .changed-files h6 {
-  font-size: 12px;
+  font-size: 14px;
   margin-bottom: 12px;
   color: var(--text-secondary);
 }
 
-.file-diff {
-  margin-bottom: 16px;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  overflow: hidden;
+.changed-files ul {
+  padding-left: 0;
+  list-style: none;
+  margin: 0;
 }
 
-.diff-header {
-  background-color: var(--bg-tertiary);
-  padding: 8px 12px;
-  font-size: 12px;
-  font-weight: 500;
-  border-bottom: 1px solid var(--border-color);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.diff-stats {
-  font-size: 11px;
-  color: var(--text-muted);
-}
-
-.diff-content {
-  background-color: var(--bg-primary);
-  font-family: "Courier New", monospace;
-  font-size: 11px;
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-.diff-line {
-  padding: 2px 8px;
-  white-space: pre;
-  line-height: 1.4;
-}
-
-.diff-line.added {
-  background-color: rgba(129, 199, 132, 0.2);
-  color: var(--accent-success);
-}
-
-.diff-line.removed {
-  background-color: rgba(229, 115, 115, 0.2);
-  color: var(--accent-danger);
-}
-
-.diff-line.context {
-  color: var(--text-secondary);
-}
-
-.diff-line.header {
-  background-color: var(--bg-tertiary);
+.list-group-item {
+  background-color: transparent;
+  border: none;
+  font-size: 13px;
   color: var(--text-primary);
-  font-weight: 500;
+}
+/* Utility Classes */
+.no-selection {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 32px 16px;
+}
+
+.no-selection i {
+  display: block;
+  margin-bottom: 12px;
+  opacity: 0.5;
 }
 </style>

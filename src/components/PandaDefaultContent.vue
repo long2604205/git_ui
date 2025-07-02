@@ -14,6 +14,9 @@
         :collapsed="isGitCollapsed"
         @toggle-git="toggleGitPanel"
       />
+      <div class="col main-content">
+      </div>
+      <panda-right-panel/>
     </div>
   </div>
 </template>
@@ -21,6 +24,7 @@
 import PandaRepositoryWorkspace from '@/components/PandaRepositoryWorkspace.vue'
 import { ref } from 'vue'
 import PandaLeftSidebar from '@/components/PandaLeftSidebar.vue'
+import PandaRightPanel from '@/components/PandaRightPanel.vue'
 
 const repositories = ref([
   {
@@ -211,5 +215,11 @@ function toggleGitPanel() {
 .main-container {
   height: calc(100vh - 56px);
   padding: 0;
+}
+.main-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
 }
 </style>

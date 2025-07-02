@@ -118,7 +118,7 @@
         </div>
       </div>
     </div>
-    <div class="resizer-horizontal" @mousedown="startResizeContainer"></div>
+    <div class="resizer-horizontal" @mousedown="startResizeContainer" v-if="!collapsed"></div>
   </div>
 </template>
 <script setup>
@@ -139,6 +139,7 @@ const showSearchBranch = ref(false);
 const reposHeight = ref(0);
 const containerHeight = ref(0);
 const containerWidth = ref(300);
+const previousWidth = ref(300)
 let isResizing = false;
 let isResizingContainer = false;
 const emit = defineEmits(['set-active-repo', 'remove-repo', 'toggle-workspace'])
@@ -147,21 +148,18 @@ const emit = defineEmits(['set-active-repo', 'remove-repo', 'toggle-workspace'])
 // Watch
 watch(() => props.collapsed, (newVal) => {
   if (!newVal) {
-    setTimeout(() => {
-      showActions.value = true;
-    }, 300);
+    showActions.value = true;
+    containerWidth.value = previousWidth.value;
   } else {
     showActions.value = false;
+    previousWidth.value = containerWidth.value;
+    containerWidth.value = 55;
   }
 });
 
 // Methods
 const onRepoClick = (repo) => {
   emit('set-active-repo', repo)
-}
-
-const onCloseRepo = (repo) => {
-  emit('remove-repo', repo)
 }
 
 const getStatusIcon = (status) => {
@@ -221,6 +219,7 @@ onMounted(() => {
 });
 
 const startResizeContainer = (e) => {
+  if (props.collapsed) return;
   isResizingContainer = true;
   window.addEventListener('mousemove', resizeContainer);
   window.addEventListener('mouseup', stopResizeContainer);
@@ -230,7 +229,7 @@ const resizeContainer = (e) => {
   if (!isResizingContainer) return;
   const wrapperLeft = document.querySelector('.horizontal-resize-wrapper').getBoundingClientRect().left;
   let newWidth = e.clientX - wrapperLeft;
-  newWidth = Math.min(Math.max(newWidth, 200), 700);
+  newWidth = Math.min(Math.max(newWidth, 250), 800);
   containerWidth.value = newWidth;
 };
 
@@ -245,16 +244,17 @@ const stopResizeContainer = () => {
   display: flex;
   flex-direction: row;
   width: 300px;
-  min-width: 250px;
+  min-width: 60px;
   max-width: 800px;
   height: 100%;
   overflow: hidden;
   position: relative;
   padding-right: 0;
+  //transition: width 0.3s ease;
 }
 
 .resizer-horizontal {
-  width: 6px;
+  width: 5px;
   background-color: var(--border-color);
   cursor: col-resize;
   user-select: none;
@@ -265,7 +265,6 @@ const stopResizeContainer = () => {
   height: 100%;
   background-color: var(--bg-secondary);
   border-right: 1px solid var(--border-color);
-  transition: width 0.5s ease;
   overflow: hidden;
   padding-right: 0;
 }
@@ -331,7 +330,6 @@ const stopResizeContainer = () => {
 
 .workspace-container .workspace-header h6,
 .workspace-container .workspace-content {
-  transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 .workspace-container.collapsed .workspace-header h6,
@@ -403,7 +401,6 @@ const stopResizeContainer = () => {
   margin-bottom: 4px;
   border-radius: 4px;
   cursor: pointer;
-  transition: all 0.2s ease;
   border: 1px solid transparent;
 }
 
@@ -482,13 +479,13 @@ const stopResizeContainer = () => {
 
 .resizer {
   height: 5px;
-  background-color: var(--bg-tertiary);
+  background-color: var(--bg-secondary);
   cursor: row-resize;
   user-select: none;
 }
 
 .fade-search-enter-active, .fade-search-leave-active {
-  transition: all 0.5s ease;
+  transition: all 0.3s ease;
 }
 .fade-search-enter-from, .fade-search-leave-to {
   opacity: 0;

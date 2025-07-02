@@ -10,6 +10,14 @@
         @toggle-workspace="toggleWorkspacePanel"
       />
       <div class="col main-content">
+        <panda-commit-panel
+          :repository="sampleRepository"
+          @commit="onCommit"
+          @commit-push="onCommitPush"
+          @refresh="onRefresh"
+          @force-push="onForcePush"
+          @push-tags="onPushTags"
+        />
       </div>
       <panda-right-panel
         :commit="commitData"
@@ -23,6 +31,7 @@
 import PandaRepositoryWorkspace from '@/components/PandaRepositoryWorkspace.vue'
 import { ref } from 'vue'
 import PandaRightPanel from '@/components/PandaRightPanel.vue'
+import PandaCommitPanel from '@/components/PandaCommitPanel.vue'
 
 const panelCollapsed = ref(false)
 const repositories = ref([
@@ -203,6 +212,13 @@ const commitData = {
     'src/utils/validator.js'
   ]
 }
+const sampleRepository = {
+  changes: [
+    { file: 'src/App.vue', type: 'Modified', status: 'modified' },
+    { file: 'src/main.js', type: 'Added', status: 'added' },
+    { file: 'README.md', type: 'Deleted', status: 'deleted' }
+  ]
+}
 function setActiveRepository(repo) {
   activeRepository.value = repo
 }
@@ -216,6 +232,26 @@ function removeRepository(repo) {
 
 function toggleWorkspacePanel() {
   isWorkspaceCollapsed.value = !isWorkspaceCollapsed.value
+}
+
+function onCommit(payload) {
+  console.log('Commit:', payload)
+}
+
+function onCommitPush(payload) {
+  console.log('Commit and Push:', payload)
+}
+
+function onRefresh() {
+  console.log('Refresh changes')
+}
+
+function onForcePush() {
+  console.log('Force push')
+}
+
+function onPushTags() {
+  console.log('Push with tags')
 }
 
 </script>

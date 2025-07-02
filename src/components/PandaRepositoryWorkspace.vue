@@ -1,95 +1,129 @@
 <template>
-  <div class="col-auto workspace-container" :class="{ collapsed: collapsed }">
-    <div class="workspace-panel">
-      <!-- Header -->
-      <div class="workspace-header">
-        <h6 class="mb-0">Repositories</h6>
-        <div class="workspace-toggle">
-          <button
-            class="btn btn-sm workspace-action"
-            v-if="showActions"
-          >
-            <i class="fa-solid fa-plus"></i>
-          </button>
-          <button
-            class="btn btn-sm workspace-action"
-            v-if="showActions"
-          >
-            <i class="fa-solid fa-ellipsis-vertical"></i>
-          </button>
-          <button class="btn btn-sm workspace-action" @click="$emit('toggle-workspace')">
-            <i :class="['fas', collapsed ? 'fa-solid fa-layer-group' : 'fa-solid fa-minus']"></i>
-          </button>
-        </div>
-      </div>
-
-      <!-- repository list -->
-      <div class="workspace-content">
-        <div class="workspace-repos">
-          <template v-if="repositories.length === 0">
-            <div class="no-repos-message text-center py-4">
-              <i class="fas fa-folder-open fa-2x mb-2"></i>
-              <p>No repositories open</p>
-              <small>Open repositories to manage them here</small>
+  <div class="horizontal-resize-wrapper" :style="{ width: containerWidth + 'px' }">
+    <div class="workspace-container" :class="{ collapsed: collapsed }">
+      <div class="workspace-panel workspace-split">
+        <div class="repositories-workspace" :style="{ height: reposHeight + 'px' }">
+          <!-- Header -->
+          <div class="workspace-header">
+            <h6 class="mb-0">Repositories</h6>
+            <div class="workspace-toggle">
+              <button
+                class="btn btn-sm workspace-action"
+                v-if="showActions"
+              >
+                <i class="fa-solid fa-plus"></i>
+              </button>
+              <button
+                class="btn btn-sm workspace-action search"
+                v-if="showActions"
+                @click="showSearchRepository = !showSearchRepository"
+              >
+                <i class="fa-solid fa-magnifying-glass"></i>
+              </button>
+              <button
+                class="btn btn-sm workspace-action"
+                v-if="showActions"
+              >
+                <i class="fa-solid fa-ellipsis-vertical"></i>
+              </button>
+              <button class="btn btn-sm workspace-action" @click="$emit('toggle-workspace')">
+                <i :class="['fas', collapsed ? 'fa-solid fa-layer-group' : 'fa-solid fa-minus']"></i>
+              </button>
             </div>
-          </template>
-
-          <template v-else>
-            <div
-              v-for="repo in repositories"
-              :key="repo.id"
-              class="repo-item"
-              :class="{ active: activeRepository && activeRepository.id === repo.id }"
-              @click="onRepoClick(repo)"
-            >
-              <div class="repo-icon">
-                <i class="fas fa-folder text-warning"></i>
+          </div>
+          <transition name="fade-search">
+            <div class="search-workspace" v-if="showSearchRepository">
+              <div class="symbol-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
               </div>
-              <div class="repo-info">
-                <div class="repo-name">{{ repo.name }}</div>
-                <div class="repo-path">{{ repo.path }}</div>
-              </div>
-              <div class="repo-status">
-                <i
-                  class="fas"
-                  :class="[getStatusIcon(repo.status), getStatusColor(repo.status)]"
-                  :title="repo.status"
-                ></i>
-              </div>
+              <input class="search-branch" placeholder="Search" />
             </div>
-          </template>
-        </div>
-      </div>
+          </transition>
 
-      <div class="workspace-header">
-        <h6 class="mb-0">Branches</h6>
-        <div class="workspace-toggle">
-          <button
-            class="btn btn-sm workspace-action"
-            v-if="showActions"
-          >
-            <i class="fa-solid fa-plus"></i>
-          </button>
-          <button
-            class="btn btn-sm workspace-action"
-            v-if="showActions"
-          >
-            <i class="fa-solid fa-ellipsis-vertical"></i>
-          </button>
+          <!-- repository list -->
+          <div class="workspace-content">
+            <div class="workspace-repos">
+              <template v-if="repositories.length === 0">
+                <div class="no-repos-message text-center py-4">
+                  <i class="fas fa-folder-open fa-2x mb-2"></i>
+                  <p>No repositories open</p>
+                  <small>Open repositories to manage them here</small>
+                </div>
+              </template>
+
+              <template v-else>
+                <div
+                  v-for="repo in repositories"
+                  :key="repo.id"
+                  class="repo-item"
+                  :class="{ active: activeRepository && activeRepository.id === repo.id }"
+                  @click="onRepoClick(repo)"
+                >
+                  <div class="repo-icon">
+                    <i class="fas fa-folder text-warning"></i>
+                  </div>
+                  <div class="repo-info">
+                    <div class="repo-name">{{ repo.name }}</div>
+                    <div class="repo-path">{{ repo.path }}</div>
+                  </div>
+                  <div class="repo-status">
+                    <i
+                      class="fas"
+                      :class="[getStatusIcon(repo.status), getStatusColor(repo.status)]"
+                      :title="repo.status"
+                    ></i>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
         </div>
-      </div>
-      <div>
-        <input placeholder="Search">
-      </div>
-      <div class="workspace-content">
-        <h1>Git</h1>
+        <div class="resizer" @mousedown="startResizing"></div>
+        <div class="branch-workspace" :style="{ height: 'calc(100% - ' + reposHeight + 'px - 5px)' }">
+          <div class="branch-workspace-header">
+            <h6 class="mb-0">Branches</h6>
+            <div class="workspace-toggle">
+              <button
+                class="btn btn-sm workspace-action"
+                v-if="showActions"
+              >
+                <i class="fa-solid fa-plus"></i>
+              </button>
+              <button
+                class="btn btn-sm workspace-action search"
+                v-if="showActions"
+                @click="showSearchBranch = !showSearchBranch"
+              >
+                <i class="fa-solid fa-magnifying-glass"></i>
+              </button>
+              <button
+                class="btn btn-sm workspace-action"
+                v-if="showActions"
+              >
+                <i class="fa-solid fa-ellipsis-vertical"></i>
+              </button>
+            </div>
+          </div>
+          <transition name="fade-search">
+            <div class="search-workspace" v-if="showSearchBranch">
+              <div class="symbol-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+              </div>
+              <input class="search-branch" placeholder="Search" />
+            </div>
+          </transition>
+          <div class="workspace-content">
+            <h1>Git</h1>
+          </div>
+        </div>
       </div>
     </div>
+    <div class="resizer-horizontal" @mousedown="startResizeContainer"></div>
   </div>
 </template>
 <script setup>
 // Props
-import { ref, watch } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 
 const props = defineProps({
   repositories: {
@@ -99,9 +133,16 @@ const props = defineProps({
   activeRepository: Object,
   collapsed: Boolean
 })
-// Emits
-const emit = defineEmits(['set-active-repo', 'remove-repo', 'toggle-workspace'])
 const showActions = ref(true);
+const showSearchRepository = ref(false);
+const showSearchBranch = ref(false);
+const reposHeight = ref(0);
+const containerHeight = ref(0);
+const containerWidth = ref(300);
+let isResizing = false;
+let isResizingContainer = false;
+const emit = defineEmits(['set-active-repo', 'remove-repo', 'toggle-workspace'])
+
 
 // Watch
 watch(() => props.collapsed, (newVal) => {
@@ -140,10 +181,87 @@ const getStatusColor = (status) => {
     default: return 'text-muted'
   }
 }
+
+const startResizing = (e) => {
+  const container = document.querySelector('.workspace-split');
+  if (!container) return;
+
+  containerHeight.value = container.clientHeight;
+  isResizing = true;
+
+  window.addEventListener('mousemove', resizePanel);
+  window.addEventListener('mouseup', stopResizing);
+};
+
+const resizePanel = (e) => {
+  if (!isResizing) return;
+
+  const container = document.querySelector('.workspace-split');
+  const containerTop = container.getBoundingClientRect().top;
+  const newHeight = e.clientY - containerTop;
+
+  const minHeight = containerHeight.value * 0.2;
+  const maxHeight = containerHeight.value * 0.8;
+
+  reposHeight.value = Math.min(Math.max(newHeight, minHeight), maxHeight)
+};
+
+const stopResizing = () => {
+  isResizing = false;
+  window.removeEventListener('mousemove', resizePanel)
+  window.removeEventListener('mouseup', stopResizing)
+};
+
+onMounted(() => {
+  const container = document.querySelector('.workspace-split')
+  if (container) {
+    containerHeight.value = container.clientHeight;
+    reposHeight.value = containerHeight.value / 2
+  }
+});
+
+const startResizeContainer = (e) => {
+  isResizingContainer = true;
+  window.addEventListener('mousemove', resizeContainer);
+  window.addEventListener('mouseup', stopResizeContainer);
+};
+
+const resizeContainer = (e) => {
+  if (!isResizingContainer) return;
+  const wrapperLeft = document.querySelector('.horizontal-resize-wrapper').getBoundingClientRect().left;
+  let newWidth = e.clientX - wrapperLeft;
+  newWidth = Math.min(Math.max(newWidth, 200), 700);
+  containerWidth.value = newWidth;
+};
+
+const stopResizeContainer = () => {
+  isResizingContainer = false;
+  window.removeEventListener('mousemove', resizeContainer);
+  window.removeEventListener('mouseup', stopResizeContainer);
+};
 </script>
 <style scoped>
+.horizontal-resize-wrapper {
+  display: flex;
+  flex-direction: row;
+  width: 300px;
+  min-width: 250px;
+  max-width: 800px;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+  padding-right: 0;
+}
+
+.resizer-horizontal {
+  width: 6px;
+  background-color: var(--border-color);
+  cursor: col-resize;
+  user-select: none;
+}
+
 .workspace-container {
-  width: 280px;
+  width: 100%;
   height: 100%;
   background-color: var(--bg-secondary);
   border-right: 1px solid var(--border-color);
@@ -224,13 +342,47 @@ const getStatusColor = (status) => {
   pointer-events: none;
 }
 
+.workspace-container.collapsed .branch-workspace-header{
+  opacity: 0;
+  visibility: hidden;
+  height: 0;
+  pointer-events: none;
+}
+
 .workspace-action {
   margin: 0;
   background: transparent;
   border: none;
   color: var(--text-secondary);
 }
+.repositories-workspace {
+  height: 50%;
+  min-height: 20%;
+  max-height: 80%;
+  display: flex;
+  flex-direction: column;
+}
+.branch-workspace{
+  height: 50%;
+  min-height: 20%;
+  max-height: 80%;
+}
 
+.branch-workspace-header{
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-color);
+  min-height: 36px;
+}
+
+.branch-workspace-header h6{
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0;
+}
 /* Utility Classes */
 .no-repos-message{
   text-align: center;
@@ -290,5 +442,60 @@ const getStatusColor = (status) => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.search-workspace{
+  position: sticky;
+  top: 0;
+  padding: 8px;
+  margin: 5px;
+  display: flex;
+  align-items: center;
+  border-radius: 8px;
+  border: solid 1px var(--border-color);
+  font-size: 12px;
+  background-color: var(--bg-secondary);
+}
+
+.search-branch {
+  width: 100%;
+  background-color: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: none;
+}
+
+.search-branch:focus-visible {
+  outline: none;
+}
+
+.symbol-search {
+  margin-right: 5px;
+  color: var(--text-secondary);
+}
+
+.workspace-split {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.resizer {
+  height: 5px;
+  background-color: var(--bg-tertiary);
+  cursor: row-resize;
+  user-select: none;
+}
+
+.fade-search-enter-active, .fade-search-leave-active {
+  transition: all 0.5s ease;
+}
+.fade-search-enter-from, .fade-search-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+.fade-search-enter-to, .fade-search-leave-from {
+  opacity: 1;
+  transform: translateY(0);
 }
 </style>

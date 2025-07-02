@@ -250,7 +250,6 @@ const stopResizeContainer = () => {
   overflow: hidden;
   position: relative;
   padding-right: 0;
-  //transition: width 0.3s ease;
 }
 
 .resizer-horizontal {

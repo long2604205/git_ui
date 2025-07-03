@@ -1,7 +1,7 @@
 <template>
   <div class="toolbar-panel">
     <div class="row">
-      <div class="col-md-6 d-flex">
+      <div class="col-md-12 d-flex">
         <div class="toolbar-buttons">
           <button class="btn btn-toolbar">
             <i class="fas fa-clone"></i>

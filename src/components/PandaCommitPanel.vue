@@ -3,8 +3,7 @@
     <!-- Header -->
     <div class="panel-header">
       <h6 class="mb-0">
-        <i class="fas fa-check me-2"></i>Commit
-        <span class="changes-count">({{ changes.length }})</span>
+        <i class="fa-solid fa-code-commit me-2"></i>Commit
       </h6>
       <div class="panel-actions">
         <button class="btn btn-sm panel-action-btn" title="Refresh" @click="$emit('refresh')">
@@ -19,86 +18,164 @@
       </div>
     </div>
 
-    <!-- Changes List -->
-    <div class="changes-list">
-      <template v-if="changes.length === 0">
-        <div class="no-changes-message text-center text-muted py-4">
-          <i class="fas fa-check-circle fa-2x mb-2"></i>
-          <p>No changes</p>
-          <small>All files are up to date</small>
-        </div>
-      </template>
+    <div class="row">
+      <div class="changes-list col-6">
+        <panda-changes-file-tree/>
+<!--        <template v-if="changes.length === 0">-->
+<!--          <div class="no-changes-message text-center text-muted py-4">-->
+<!--            <i class="fas fa-check-circle fa-2x mb-2"></i>-->
+<!--            <p>No changes</p>-->
+<!--            <small>All files are up to date</small>-->
+<!--          </div>-->
+<!--        </template>-->
 
-      <template v-else>
-        <div
-          v-for="(change, index) in changes"
-          :key="index"
-          class="change-item"
-          @click="onChangeClick(change, index)"
-        >
-          <input type="checkbox" class="form-check-input change-checkbox" v-model="change.checked" @click.stop>
-          <div class="change-status" :class="change.status">
-            {{ change.type }}
+<!--        <template v-else>-->
+<!--          <div-->
+<!--            v-for="(change, index) in changes"-->
+<!--            :key="index"-->
+<!--            class="change-item"-->
+<!--            @click="onChangeClick(change, index)"-->
+<!--          >-->
+<!--            <input type="checkbox" class="form-check-input change-checkbox" v-model="change.checked" @click.stop>-->
+<!--            <div class="change-status" :class="change.status">-->
+<!--              {{ change.type }}-->
+<!--            </div>-->
+<!--            <span class="change-file" :title="change.file">{{ change.file }}</span>-->
+<!--          </div>-->
+<!--        </template>-->
+      </div>
+
+      <div class="commit-form col-6">
+        <div class="commit-options mb-2">
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" v-model="amend">
+            <label class="form-check-label text-light">Amend</label>
           </div>
-          <span class="change-file" :title="change.file">{{ change.file }}</span>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" v-model="signOff">
+            <label class="form-check-label text-light">Sign-off</label>
+          </div>
         </div>
-      </template>
-    </div>
 
-    <!-- Commit Form -->
-    <div class="commit-form">
-      <div class="commit-options mb-2">
-        <div class="form-check form-check-inline">
-          <input class="form-check-input" type="checkbox" v-model="amend">
-          <label class="form-check-label text-light">Amend</label>
-        </div>
-        <div class="form-check form-check-inline">
-          <input class="form-check-input" type="checkbox" v-model="signOff">
-          <label class="form-check-label text-light">Sign-off</label>
-        </div>
-      </div>
+        <textarea
+          class="form-control commit-message"
+          placeholder="Commit message"
+          v-model="commitMessage"
+          rows="3"
+        ></textarea>
 
-      <textarea
-        class="form-control commit-message"
-        placeholder="Commit message"
-        v-model="commitMessage"
-        rows="3"
-      ></textarea>
-
-      <div class="commit-actions mt-2">
-        <button
-          class="btn btn-primary btn-sm me-2"
-          :disabled="!canCommit"
-          @click="$emit('commit', { message: commitMessage, changes })"
-        >
-          <i class="fas fa-check me-1"></i>Commit
-        </button>
-
-        <div class="btn-group">
+        <div class="commit-actions mt-2">
           <button
-            class="btn btn-outline-primary btn-sm"
+            class="btn btn-primary btn-sm me-2"
             :disabled="!canCommit"
-            @click="$emit('commit-push', { message: commitMessage, changes })"
+            @click="$emit('commit', { message: commitMessage, changes })"
           >
-            <i class="fas fa-upload me-1"></i>Commit and Push
+            <i class="fas fa-check me-1"></i>Commit
           </button>
-          <button class="btn btn-outline-primary btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown"></button>
-          <ul class="dropdown-menu dropdown-menu-dark">
-            <li><a class="dropdown-item" href="#" @click.prevent="$emit('force-push')">
-              <i class="fas fa-exclamation-triangle me-2"></i>Force Push
-            </a></li>
-            <li><a class="dropdown-item" href="#" @click.prevent="$emit('push-tags')">
-              <i class="fas fa-tags me-2"></i>Push with Tags
-            </a></li>
-          </ul>
+
+          <div class="btn-group">
+            <button
+              class="btn btn-outline-primary btn-sm"
+              :disabled="!canCommit"
+              @click="$emit('commit-push', { message: commitMessage, changes })"
+            >
+              <i class="fas fa-upload me-1"></i>Commit and Push
+            </button>
+            <button class="btn btn-outline-primary btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown"></button>
+            <ul class="dropdown-menu dropdown-menu-dark">
+              <li><a class="dropdown-item" href="#" @click.prevent="$emit('force-push')">
+                <i class="fas fa-exclamation-triangle me-2"></i>Force Push
+              </a></li>
+              <li><a class="dropdown-item" href="#" @click.prevent="$emit('push-tags')">
+                <i class="fas fa-tags me-2"></i>Push with Tags
+              </a></li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
+
+<!--    &lt;!&ndash; Changes List &ndash;&gt;-->
+<!--    <div class="changes-list">-->
+<!--      <template v-if="changes.length === 0">-->
+<!--        <div class="no-changes-message text-center text-muted py-4">-->
+<!--          <i class="fas fa-check-circle fa-2x mb-2"></i>-->
+<!--          <p>No changes</p>-->
+<!--          <small>All files are up to date</small>-->
+<!--        </div>-->
+<!--      </template>-->
+
+<!--      <template v-else>-->
+<!--        <div-->
+<!--          v-for="(change, index) in changes"-->
+<!--          :key="index"-->
+<!--          class="change-item"-->
+<!--          @click="onChangeClick(change, index)"-->
+<!--        >-->
+<!--          <input type="checkbox" class="form-check-input change-checkbox" v-model="change.checked" @click.stop>-->
+<!--          <div class="change-status" :class="change.status">-->
+<!--            {{ change.type }}-->
+<!--          </div>-->
+<!--          <span class="change-file" :title="change.file">{{ change.file }}</span>-->
+<!--        </div>-->
+<!--      </template>-->
+<!--    </div>-->
+
+<!--    &lt;!&ndash; Commit Form &ndash;&gt;-->
+<!--    <div class="commit-form">-->
+<!--      <div class="commit-options mb-2">-->
+<!--        <div class="form-check form-check-inline">-->
+<!--          <input class="form-check-input" type="checkbox" v-model="amend">-->
+<!--          <label class="form-check-label text-light">Amend</label>-->
+<!--        </div>-->
+<!--        <div class="form-check form-check-inline">-->
+<!--          <input class="form-check-input" type="checkbox" v-model="signOff">-->
+<!--          <label class="form-check-label text-light">Sign-off</label>-->
+<!--        </div>-->
+<!--      </div>-->
+
+<!--      <textarea-->
+<!--        class="form-control commit-message"-->
+<!--        placeholder="Commit message"-->
+<!--        v-model="commitMessage"-->
+<!--        rows="3"-->
+<!--      ></textarea>-->
+
+<!--      <div class="commit-actions mt-2">-->
+<!--        <button-->
+<!--          class="btn btn-primary btn-sm me-2"-->
+<!--          :disabled="!canCommit"-->
+<!--          @click="$emit('commit', { message: commitMessage, changes })"-->
+<!--        >-->
+<!--          <i class="fas fa-check me-1"></i>Commit-->
+<!--        </button>-->
+
+<!--        <div class="btn-group">-->
+<!--          <button-->
+<!--            class="btn btn-outline-primary btn-sm"-->
+<!--            :disabled="!canCommit"-->
+<!--            @click="$emit('commit-push', { message: commitMessage, changes })"-->
+<!--          >-->
+<!--            <i class="fas fa-upload me-1"></i>Commit and Push-->
+<!--          </button>-->
+<!--          <button class="btn btn-outline-primary btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown"></button>-->
+<!--          <ul class="dropdown-menu dropdown-menu-dark">-->
+<!--            <li><a class="dropdown-item" href="#" @click.prevent="$emit('force-push')">-->
+<!--              <i class="fas fa-exclamation-triangle me-2"></i>Force Push-->
+<!--            </a></li>-->
+<!--            <li><a class="dropdown-item" href="#" @click.prevent="$emit('push-tags')">-->
+<!--              <i class="fas fa-tags me-2"></i>Push with Tags-->
+<!--            </a></li>-->
+<!--          </ul>-->
+<!--        </div>-->
+<!--      </div>-->
+<!--    </div>-->
   </div>
 </template>
 
 <script setup>
 import { computed, ref, watch } from 'vue'
+import PandaChangesFileTree from '@/components/PandaChangesFileTree.vue'
 
 const props = defineProps({
   repository: {

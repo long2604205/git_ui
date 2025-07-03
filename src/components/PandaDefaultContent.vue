@@ -2,7 +2,7 @@
   <div class="container-fluid main-container">
     <div class="row main-layout-container h-100">
       <panda-repository-workspace
-        :repositories="[]"
+        :repositories="repositories"
         :active-repository="activeRepository"
         :collapsed="isWorkspaceCollapsed"
         @set-active-repo="setActiveRepository"
@@ -271,5 +271,6 @@ function onPushTags() {
   flex-direction: column;
   height: 100%;
   overflow: hidden;
+  padding: 0;
 }
 </style>

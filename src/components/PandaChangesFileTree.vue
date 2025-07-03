@@ -10,6 +10,10 @@
         class="fas fa-caret-down collapse-icon"
         :class="{ collapsed: !changesSectionExpanded }"
       ></i>
+      <input
+        type="checkbox"
+        class="file-checkbox"
+      >
       <span class="section-title">Changes {{ changedFiles.length }} files</span>
     </div>
     <transition name="collapse">

@@ -4,11 +4,11 @@
     <div
       class="section-header"
       :class="{ collapsed: !changesSectionExpanded }"
-      @click="toggleChangesSection"
     >
       <i
         class="fas fa-caret-down collapse-icon"
         :class="{ collapsed: !changesSectionExpanded }"
+        @click="toggleChangesSection"
       ></i>
       <input
         type="checkbox"
@@ -45,11 +45,11 @@
     <div
       class="section-header"
       :class="{ collapsed: !unversionedSectionExpanded }"
-      @click="toggleUnversionedSection"
     >
       <i
         class="fas fa-caret-down collapse-icon"
         :class="{ collapsed: !unversionedSectionExpanded }"
+        @click="toggleUnversionedSection"
       ></i>
       <span class="section-title">Unversioned Files {{ unversionedFiles.length }} file</span>
     </div>
@@ -277,7 +277,7 @@ watch(selectedFiles, (newSelected) => {
 .section-header {
   //background-color: #404040;
   padding: 8px 12px;
-  border-bottom: 1px solid #555;
+  //border-bottom: 1px solid #555;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -324,7 +324,7 @@ watch(selectedFiles, (newSelected) => {
   display: flex;
   align-items: center;
   transition: background-color 0.2s;
-  border-bottom: 1px solid #555;
+  //border-bottom: 1px solid #555;
   cursor: pointer;
 }
 

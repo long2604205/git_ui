@@ -230,6 +230,10 @@ const stopVerticalResize = () => {
   margin: 0;
 }
 
+.details-header h6{
+  font-size: 14px;
+}
+
 .details-content {
   flex: 1;
   padding: 12px;

@@ -3,7 +3,7 @@
     <!-- Header -->
     <div class="panel-header">
       <h6 class="mb-0">
-        <i class="fas fa-check me-2"></i>Changes
+        <i class="fas fa-check me-2"></i>Commit
         <span class="changes-count">({{ changes.length }})</span>
       </h6>
       <div class="panel-actions">

@@ -10,6 +10,7 @@
         @toggle-workspace="toggleWorkspacePanel"
       />
       <div class="col main-content">
+        <panda-toolbar/>
         <panda-commit-panel
           :repository="sampleRepository"
           @commit="onCommit"
@@ -32,6 +33,7 @@ import PandaRepositoryWorkspace from '@/components/PandaRepositoryWorkspace.vue'
 import { ref } from 'vue'
 import PandaRightPanel from '@/components/PandaRightPanel.vue'
 import PandaCommitPanel from '@/components/PandaCommitPanel.vue'
+import PandaToolbar from '@/components/PandaToolbar.vue'
 
 const panelCollapsed = ref(false)
 const repositories = ref([

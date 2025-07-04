@@ -18,158 +18,62 @@
       </div>
     </div>
 
-    <div class="row">
+    <div class="row commit-workspace">
       <div class="changes-list col-6">
         <panda-changes-file-tree/>
-<!--        <template v-if="changes.length === 0">-->
-<!--          <div class="no-changes-message text-center text-muted py-4">-->
-<!--            <i class="fas fa-check-circle fa-2x mb-2"></i>-->
-<!--            <p>No changes</p>-->
-<!--            <small>All files are up to date</small>-->
-<!--          </div>-->
-<!--        </template>-->
-
-<!--        <template v-else>-->
-<!--          <div-->
-<!--            v-for="(change, index) in changes"-->
-<!--            :key="index"-->
-<!--            class="change-item"-->
-<!--            @click="onChangeClick(change, index)"-->
-<!--          >-->
-<!--            <input type="checkbox" class="form-check-input change-checkbox" v-model="change.checked" @click.stop>-->
-<!--            <div class="change-status" :class="change.status">-->
-<!--              {{ change.type }}-->
-<!--            </div>-->
-<!--            <span class="change-file" :title="change.file">{{ change.file }}</span>-->
-<!--          </div>-->
-<!--        </template>-->
       </div>
 
       <div class="commit-form col-6">
-        <div class="commit-options mb-2">
-          <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" v-model="amend">
-            <label class="form-check-label text-light">Amend</label>
-          </div>
-          <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" v-model="signOff">
-            <label class="form-check-label text-light">Sign-off</label>
-          </div>
-        </div>
-
         <textarea
           class="form-control commit-message"
           placeholder="Commit message"
           v-model="commitMessage"
-          rows="3"
         ></textarea>
+        <div class="commit-actions mt-3 d-flex justify-content-between align-items-center">
+          <!-- Left: Checkbox -->
+          <div>
+            <div class="form-check form-check-inline">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                v-model="amend"
+                id="amend-checkbox"
+              />
+              <label class="form-check-label text-light" for="amend-checkbox">Amend</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                v-model="signOff"
+                id="signoff-checkbox"
+              />
+              <label class="form-check-label text-light" for="signoff-checkbox">Sign-off</label>
+            </div>
+          </div>
 
-        <div class="commit-actions mt-2">
-          <button
-            class="btn btn-primary btn-sm me-2"
-            :disabled="!canCommit"
-            @click="$emit('commit', { message: commitMessage, changes })"
-          >
-            <i class="fas fa-check me-1"></i>Commit
-          </button>
-
-          <div class="btn-group">
+          <!-- Right: Buttons -->
+          <div>
             <button
-              class="btn btn-outline-primary btn-sm"
+              class="btn btn-commit btn-sm me-2"
+              :disabled="!canCommit"
+              @click="$emit('commit', { message: commitMessage, changes })"
+            >
+              Commit
+            </button>
+
+            <button
+              class="btn btn-commit-push btn-sm"
               :disabled="!canCommit"
               @click="$emit('commit-push', { message: commitMessage, changes })"
             >
-              <i class="fas fa-upload me-1"></i>Commit and Push
+              Commit and Push
             </button>
-            <button class="btn btn-outline-primary btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown"></button>
-            <ul class="dropdown-menu dropdown-menu-dark">
-              <li><a class="dropdown-item" href="#" @click.prevent="$emit('force-push')">
-                <i class="fas fa-exclamation-triangle me-2"></i>Force Push
-              </a></li>
-              <li><a class="dropdown-item" href="#" @click.prevent="$emit('push-tags')">
-                <i class="fas fa-tags me-2"></i>Push with Tags
-              </a></li>
-            </ul>
           </div>
         </div>
       </div>
+      <div class="line-style-content"></div>
     </div>
-
-<!--    &lt;!&ndash; Changes List &ndash;&gt;-->
-<!--    <div class="changes-list">-->
-<!--      <template v-if="changes.length === 0">-->
-<!--        <div class="no-changes-message text-center text-muted py-4">-->
-<!--          <i class="fas fa-check-circle fa-2x mb-2"></i>-->
-<!--          <p>No changes</p>-->
-<!--          <small>All files are up to date</small>-->
-<!--        </div>-->
-<!--      </template>-->
-
-<!--      <template v-else>-->
-<!--        <div-->
-<!--          v-for="(change, index) in changes"-->
-<!--          :key="index"-->
-<!--          class="change-item"-->
-<!--          @click="onChangeClick(change, index)"-->
-<!--        >-->
-<!--          <input type="checkbox" class="form-check-input change-checkbox" v-model="change.checked" @click.stop>-->
-<!--          <div class="change-status" :class="change.status">-->
-<!--            {{ change.type }}-->
-<!--          </div>-->
-<!--          <span class="change-file" :title="change.file">{{ change.file }}</span>-->
-<!--        </div>-->
-<!--      </template>-->
-<!--    </div>-->
-
-<!--    &lt;!&ndash; Commit Form &ndash;&gt;-->
-<!--    <div class="commit-form">-->
-<!--      <div class="commit-options mb-2">-->
-<!--        <div class="form-check form-check-inline">-->
-<!--          <input class="form-check-input" type="checkbox" v-model="amend">-->
-<!--          <label class="form-check-label text-light">Amend</label>-->
-<!--        </div>-->
-<!--        <div class="form-check form-check-inline">-->
-<!--          <input class="form-check-input" type="checkbox" v-model="signOff">-->
-<!--          <label class="form-check-label text-light">Sign-off</label>-->
-<!--        </div>-->
-<!--      </div>-->
-
-<!--      <textarea-->
-<!--        class="form-control commit-message"-->
-<!--        placeholder="Commit message"-->
-<!--        v-model="commitMessage"-->
-<!--        rows="3"-->
-<!--      ></textarea>-->
-
-<!--      <div class="commit-actions mt-2">-->
-<!--        <button-->
-<!--          class="btn btn-primary btn-sm me-2"-->
-<!--          :disabled="!canCommit"-->
-<!--          @click="$emit('commit', { message: commitMessage, changes })"-->
-<!--        >-->
-<!--          <i class="fas fa-check me-1"></i>Commit-->
-<!--        </button>-->
-
-<!--        <div class="btn-group">-->
-<!--          <button-->
-<!--            class="btn btn-outline-primary btn-sm"-->
-<!--            :disabled="!canCommit"-->
-<!--            @click="$emit('commit-push', { message: commitMessage, changes })"-->
-<!--          >-->
-<!--            <i class="fas fa-upload me-1"></i>Commit and Push-->
-<!--          </button>-->
-<!--          <button class="btn btn-outline-primary btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown"></button>-->
-<!--          <ul class="dropdown-menu dropdown-menu-dark">-->
-<!--            <li><a class="dropdown-item" href="#" @click.prevent="$emit('force-push')">-->
-<!--              <i class="fas fa-exclamation-triangle me-2"></i>Force Push-->
-<!--            </a></li>-->
-<!--            <li><a class="dropdown-item" href="#" @click.prevent="$emit('push-tags')">-->
-<!--              <i class="fas fa-tags me-2"></i>Push with Tags-->
-<!--            </a></li>-->
-<!--          </ul>-->
-<!--        </div>-->
-<!--      </div>-->
-<!--    </div>-->
   </div>
 </template>
 
@@ -206,10 +110,10 @@ const onChangeClick = (change, index) => {
 <style scoped>
 .commit-panel {
   background-color: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-color);
   height: 320px;
   display: flex;
   flex-direction: column;
+  container-type: inline-size;
 }
 
 .panel-header {
@@ -226,6 +130,11 @@ const onChangeClick = (change, index) => {
   font-size: 12px;
   font-weight: 500;
   margin: 0;
+}
+
+.commit-workspace {
+  margin: 0;
+  height: 100%;
 }
 
 .changes-count {
@@ -256,78 +165,16 @@ const onChangeClick = (change, index) => {
 
 .changes-list {
   flex: 1;
-  overflow-y: auto;
-  padding: 8px;
-}
-
-.change-item {
-  display: flex;
-  align-items: center;
-  padding: 4px 8px;
-  margin-bottom: 2px;
-  border-radius: 4px;
-  font-size: 12px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.change-item:hover {
-  background-color: var(--bg-hover);
-}
-
-.change-item.selected {
-  background-color: var(--accent-primary);
-  color: var(--bg-primary);
-}
-
-.change-checkbox {
-  margin-right: 8px;
-}
-
-.change-status {
-  width: 16px;
-  height: 16px;
-  border-radius: 2px;
-  margin-right: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  font-weight: bold;
-  flex-shrink: 0;
-}
-
-.change-status.modified {
-  background-color: var(--accent-warning);
-  color: var(--bg-primary);
-}
-
-.change-status.added {
-  background-color: var(--accent-success);
-  color: var(--bg-primary);
-}
-
-.change-status.deleted {
-  background-color: var(--accent-danger);
-  color: white;
-}
-
-.change-status.renamed {
-  background-color: var(--accent-info);
-  color: var(--bg-primary);
-}
-
-.change-file {
-  flex: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-y: scroll;
+  max-height: 280px;
+  padding: 8px 8px 0 8px;
+  border-right: solid 2px var(--border-color);
 }
 
 .commit-form {
-  padding: 12px;
-  background-color: var(--bg-tertiary);
-  border-top: 1px solid var(--border-color);
+  padding: 8px 8px 0 8px;
+  background-color: var(--bg-secondary);
+  border-left: solid 2px var(--border-color);
 }
 
 .commit-options {
@@ -346,24 +193,73 @@ const onChangeClick = (change, index) => {
 }
 
 .commit-message {
-  background-color: var(--bg-primary);
-  border: 1px solid var(--border-color);
+  background-color: var(--bg-secondary);
+  border: none;
   color: var(--text-primary);
-  font-size: 12px;
-  resize: vertical;
-  min-height: 60px;
+  font-size: 14px;
+  resize: none;
+  min-height: 80%;
+}
+
+.commit-message::placeholder {
+  color: var(--text-muted);
 }
 
 .commit-message:focus {
-  background-color: var(--bg-primary);
-  border-color: var(--accent-primary);
+  background-color: var(--bg-secondary);
+  border: none;
   color: var(--text-primary);
-  box-shadow: 0 0 0 0.2rem rgba(255, 183, 77, 0.25);
+  box-shadow: none;
+}
+
+.commit-message:focus-visible {
+  outline: none;
+  border: none;
 }
 
 .commit-actions {
   display: flex;
-  gap: 8px;
   align-items: center;
+}
+
+.btn-commit, .btn-commit-push, .btn-commit:disabled, .btn-commit-push:disabled  {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border: var(--bg-tertiary);
+  font-size: 14px;
+  font-weight: 500;
+}
+.btn-commit:hover,.btn-commit-push:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.line-style-content {
+  height: 5px;
+  background: var(--bg-tertiary);
+}
+
+@container (max-width: 850px) {
+  .commit-form,
+  .changes-list {
+    width: 100% !important;
+    flex: 0 0 100%;
+    max-width: 100%;
+    border-left: unset;
+    border-right: unset;
+  }
+
+  .commit-form {
+    height: 150px;
+    border-top: 2px solid var(--border-color);
+  }
+
+  .changes-list {
+    border-bottom: 2px solid var(--border-color);
+  }
+
+  .commit-message {
+    min-height: 65%;
+  }
 }
 </style>

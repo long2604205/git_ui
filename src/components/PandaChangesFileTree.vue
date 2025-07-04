@@ -23,13 +23,13 @@
             v-for="file in changedFiles"
             :key="file.id"
             class="file-item"
-            @click="toggleFileSelection(file, $event)"
           >
             <input
               type="checkbox"
               class="file-checkbox"
               :id="`file-${file.id}`"
               v-model="file.selected"
+              @click="toggleFileSelection(file, $event)"
               @click.stop
               @change="onFileSelectionChange(file)"
             >
@@ -51,6 +51,10 @@
         :class="{ collapsed: !unversionedSectionExpanded }"
         @click="toggleUnversionedSection"
       ></i>
+      <input
+        type="checkbox"
+        class="file-checkbox"
+      >
       <span class="section-title">Unversioned Files {{ unversionedFiles.length }} file</span>
     </div>
     <transition name="collapse">
@@ -60,13 +64,13 @@
             v-for="file in unversionedFiles"
             :key="file.id"
             class="file-item"
-            @click="toggleFileSelection(file, $event)"
           >
             <input
               type="checkbox"
               class="file-checkbox"
               :id="`file-${file.id}`"
               v-model="file.selected"
+              @click="toggleFileSelection(file, $event)"
               @click.stop
               @change="onFileSelectionChange(file)"
             >
@@ -105,6 +109,20 @@ const props = defineProps({
       {
         id: 3,
         name: 'PandaRightPanel.vue',
+        path: 'src\\components',
+        type: 'vue',
+        selected: false
+      },
+      {
+        id: 4,
+        name: 'PandaToolbar.vue',
+        path: 'src\\components',
+        type: 'vue',
+        selected: false
+      },
+      {
+        id: 4,
+        name: 'PandaToolbar.vue',
         path: 'src\\components',
         type: 'vue',
         selected: false
@@ -295,7 +313,7 @@ watch(selectedFiles, (newSelected) => {
 
 .collapse-icon {
   margin-right: 8px;
-  font-size: 10px;
+  font-size: 16px;
   transition: transform 0.2s;
   color: #ff9500;
 }
@@ -320,7 +338,7 @@ watch(selectedFiles, (newSelected) => {
 }
 
 .file-item {
-  padding: 6px 12px 6px 32px;
+  padding: 6px 12px 6px 48px;
   display: flex;
   align-items: center;
   transition: background-color 0.2s;

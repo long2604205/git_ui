@@ -229,7 +229,7 @@ const resizeContainer = (e) => {
   if (!isResizingContainer) return;
   const wrapperLeft = document.querySelector('.horizontal-resize-wrapper').getBoundingClientRect().left;
   let newWidth = e.clientX - wrapperLeft;
-  newWidth = Math.min(Math.max(newWidth, 250), 800);
+  newWidth = Math.min(Math.max(newWidth, 250), 700);
   containerWidth.value = newWidth;
 };
 
@@ -245,7 +245,7 @@ const stopResizeContainer = () => {
   flex-direction: row;
   width: 300px;
   min-width: 60px;
-  max-width: 800px;
+  max-width: 700px;
   height: 100%;
   overflow: hidden;
   position: relative;

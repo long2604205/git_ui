@@ -109,7 +109,7 @@ const resizeContainer = (e) => {
   if (!isResizing) return
   const windowWidth = window.innerWidth
   const newWidth = windowWidth - e.clientX
-  containerWidth.value = Math.min(Math.max(newWidth, 250), 800)
+  containerWidth.value = Math.min(Math.max(newWidth, 250), 700)
 }
 
 const stopResizeContainer = () => {
@@ -146,7 +146,7 @@ const stopVerticalResize = () => {
   flex-direction: row;
   width: 300px;
   min-width: 50px;
-  max-width: 800px;
+  max-width: 700px;
   height: 100%;
   position: relative;
   overflow: hidden;

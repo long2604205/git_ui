@@ -304,6 +304,7 @@ watch(selectedFiles, (newSelected) => {
 }
 
 .section-header:hover {
+  border-radius: 10px;
   background-color: #4a4a4a;
 }
 
@@ -351,6 +352,7 @@ watch(selectedFiles, (newSelected) => {
 }
 
 .file-item:hover {
+  border-radius: 10px;
   background-color: #4a4a4a;
 }
 

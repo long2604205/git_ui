@@ -72,14 +72,16 @@
           </div>
         </div>
       </div>
-      <div class="line-style-content"></div>
     </div>
+    <div class="line-style-content"></div>
   </div>
+  <panda-git-log-panel/>
 </template>
 
 <script setup>
 import { computed, ref, watch } from 'vue'
 import PandaChangesFileTree from '@/components/PandaChangesFileTree.vue'
+import PandaGitLogPanel from '@/components/PandaGitLogPanel.vue'
 
 const props = defineProps({
   repository: {
@@ -236,7 +238,7 @@ const onChangeClick = (change, index) => {
 
 .line-style-content {
   height: 5px;
-  background: var(--bg-tertiary);
+  background: var(--border-color);
 }
 
 @container (max-width: 850px) {

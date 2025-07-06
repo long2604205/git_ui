@@ -8,6 +8,8 @@
         @set-active-repo="setActiveRepository"
         @remove-repo="removeRepository"
         @toggle-workspace="toggleWorkspacePanel"
+        @switch-branch="onSwitchBranch"
+        @open-repository="openRepository"
       />
       <div class="col main-content">
         <panda-toolbar/>
@@ -34,170 +36,49 @@ import { ref } from 'vue'
 import PandaRightPanel from '@/components/PandaRightPanel.vue'
 import PandaCommitPanel from '@/components/PandaCommitPanel.vue'
 import PandaToolbar from '@/components/PandaToolbar.vue'
+import api from '@/plugins/api.js'
 
 const panelCollapsed = ref(false)
+
 const repositories = ref([
   {
     id: 'repo1',
-    name: 'Project Alpha',
-    path: '/projects/project-alpha',
+    name: 'Core API',
+    path: 'C:/Users/zhilo/OneDrive/Documents/Project/Training/auto_verse',
     status: 'clean',
     currentBranch: 'main',
+    branches: {
+      local: ['main', 'dev', 'release/v1.0', 'feature/auth-module', 'bugfix/token-refresh', 'hotfix/login-timeout'],
+      remote: ['origin/main', 'origin/dev', 'origin/release/v1.0', 'origin/feature/auth-module']
+    },
     changes: []
   },
   {
     id: 'repo2',
-    name: 'Marketing Site',
-    path: '/projects/marketing-site',
+    name: 'Admin Dashboard',
+    path: '/projects/admin-dashboard',
     status: 'dirty',
     currentBranch: 'dev',
-    changes: ['home.vue', 'about.vue']
+    branches: {
+      local: ['main', 'dev', 'feature/user-management', 'feature/role-settings', 'bugfix/sidebar-collapse', 'refactor/table-component'],
+      remote: ['origin/main', 'origin/dev', 'origin/feature/user-management']
+    },
+    changes: ['UserList.vue', 'Sidebar.vue']
   },
   {
     id: 'repo3',
-    name: 'Internal Tools',
-    path: '/projects/internal-tools',
-    status: 'untracked',
-    currentBranch: 'feature-login',
-    changes: ['login.js', 'auth.js']
-  },
-  {
-    id: 'repo4',
-    name: 'Legacy Codebase',
-    path: '/projects/legacy-code',
-    status: 'clean',
-    currentBranch: 'main',
-    changes: []
-  },
-  {
-    id: 'repo5',
-    name: 'Finance Dashboard',
-    path: '/projects/finance-dashboard',
-    status: 'dirty',
-    currentBranch: 'hotfix-graph',
-    changes: ['graph.js']
-  },
-  {
-    id: 'repo6',
-    name: 'Ecommerce Platform',
-    path: '/projects/ecommerce',
-    status: 'clean',
-    currentBranch: 'release-v2',
-    changes: []
-  },
-  {
-    id: 'repo7',
-    name: 'Analytics Engine',
-    path: '/projects/analytics',
-    status: 'untracked',
-    currentBranch: 'experiment-ai',
-    changes: ['ai.js', 'metrics.js']
-  },
-  {
-    id: 'repo8',
-    name: 'Game Prototype',
-    path: '/projects/game-prototype',
-    status: 'dirty',
-    currentBranch: 'dev',
-    changes: ['player.ts']
-  },
-  {
-    id: 'repo9',
-    name: 'Blog System',
-    path: '/projects/blog',
-    status: 'clean',
-    currentBranch: 'main',
-    changes: []
-  },
-  {
-    id: 'repo10',
-    name: 'Booking App',
-    path: '/projects/booking-app',
-    status: 'dirty',
-    currentBranch: 'refactor-api',
-    changes: ['api.js', 'utils.js']
-  },
-  {
-    id: 'repo11',
-    name: 'Design System',
-    path: '/projects/design-system',
-    status: 'clean',
-    currentBranch: 'main',
-    changes: []
-  },
-  {
-    id: 'repo12',
-    name: 'Admin Panel',
-    path: '/projects/admin-panel',
-    status: 'untracked',
-    currentBranch: 'feature-tables',
-    changes: ['table.vue', 'filter.vue']
-  },
-  {
-    id: 'repo13',
-    name: 'Microservice Auth',
-    path: '/projects/auth-service',
-    status: 'dirty',
-    currentBranch: 'dev',
-    changes: ['auth.ts']
-  },
-  {
-    id: 'repo14',
-    name: 'Chatbot',
-    path: '/projects/chatbot',
-    status: 'clean',
-    currentBranch: 'main',
-    changes: []
-  },
-  {
-    id: 'repo15',
-    name: 'Client Website',
-    path: '/projects/client-website',
-    status: 'dirty',
-    currentBranch: 'client-fixes',
-    changes: ['index.html', 'styles.css']
-  },
-  {
-    id: 'repo16',
-    name: 'Portfolio Site',
-    path: '/projects/portfolio',
-    status: 'untracked',
-    currentBranch: 'feature-gallery',
-    changes: ['gallery.vue']
-  },
-  {
-    id: 'repo17',
-    name: 'CRM System',
-    path: '/projects/crm',
-    status: 'clean',
-    currentBranch: 'main',
-    changes: []
-  },
-  {
-    id: 'repo18',
     name: 'Mobile App',
     path: '/projects/mobile-app',
-    status: 'dirty',
-    currentBranch: 'ios-tweak',
-    changes: ['App.swift']
-  },
-  {
-    id: 'repo19',
-    name: 'Scheduler',
-    path: '/projects/scheduler',
     status: 'untracked',
-    currentBranch: 'feature-calendar',
-    changes: ['calendar.js', 'event.js']
-  },
-  {
-    id: 'repo20',
-    name: 'Video Platform',
-    path: '/projects/video-platform',
-    status: 'clean',
-    currentBranch: 'main',
-    changes: []
+    currentBranch: 'feature/onboarding-flow',
+    branches: {
+      local: ['main', 'dev', 'feature/onboarding-flow', 'feature/push-notification', 'test/device-permissions'],
+      remote: ['origin/main', 'origin/dev', 'origin/feature/onboarding-flow']
+    },
+    changes: ['Onboarding.vue', 'PermissionService.js']
   }
-]);
+])
+
 const activeRepository = ref(null)
 const isWorkspaceCollapsed = ref(false)
 const commitData = {
@@ -220,9 +101,34 @@ const sampleRepository = {
     { file: 'README.md', type: 'Deleted', status: 'deleted' }
   ]
 }
+
 function setActiveRepository(repo) {
   activeRepository.value = repo
 }
+
+async function openRepository() {
+  try {
+    const response = await api.post('/git/open-repository', {
+      repo_path: "C:/Users/zhilo/OneDrive/Documents/Project/Training/auto_verse"
+    });
+
+    console.log(response.data.data)
+    const result = response.data.data
+
+    if (result) {
+      repositories.value.push(result);
+      activeRepository.value = result;
+
+      console.log('✅ Repo opened:', result.name);
+    } else {
+      console.error('❌ Failed to open repository: No data returned');
+    }
+
+  } catch (error) {
+    console.error('❌ Error opening repository:', error.message);
+  }
+}
+
 
 function removeRepository(repo) {
   repositories.value = repositories.value.filter(r => r.id !== repo.id)
@@ -253,6 +159,12 @@ function onForcePush() {
 
 function onPushTags() {
   console.log('Push with tags')
+}
+
+function onSwitchBranch(branch) {
+  if (activeRepository.value) {
+    activeRepository.value.currentBranch = branch
+  }
 }
 
 </script>

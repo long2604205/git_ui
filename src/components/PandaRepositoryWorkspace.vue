@@ -10,6 +10,7 @@
               <button
                 class="btn btn-sm workspace-action"
                 v-if="showActions"
+                @click="$emit('open-repository')"
               >
                 <i class="fa-solid fa-plus"></i>
               </button>
@@ -78,7 +79,9 @@
             </div>
           </div>
         </div>
+
         <div class="resizer" @mousedown="startResizing"></div>
+
         <div class="branch-workspace" :style="{ height: 'calc(100% - ' + reposHeight + 'px - 5px)' }">
           <div class="branch-workspace-header">
             <h6 class="mb-0">Branches</h6>
@@ -113,7 +116,59 @@
             </div>
           </transition>
           <div class="workspace-content">
-            <h1>Git</h1>
+            <div class="branch-tree" id="branch-tree">
+              <div v-if="!activeRepository" class="no-repo-message text-center py-4">
+                <i class="fas fa-code-branch fa-2x mb-2"></i>
+                <p>No repository selected</p>
+                <small>Open a repository to view branches</small>
+              </div>
+
+              <template v-else>
+                <!-- HEAD -->
+                <div class="tree-item">
+                  <i class="fas fa-chevron-down tree-toggle" @click="toggle('head')"></i>
+                  <i class="fas fa-laptop text-info me-1"></i>
+                  <span>HEAD (Current Branch)</span>
+                </div>
+                <div class="tree-item nested active">
+                  <i class="fas fa-star text-warning me-1"></i>
+                  <span>{{ activeRepository.currentBranch }}</span>
+                </div>
+
+                <!-- Local -->
+                <div class="tree-item">
+                  <i class="fas fa-chevron-down tree-toggle" @click="toggle('local')"></i>
+                  <i class="fas fa-folder text-warning me-1"></i>
+                  <span>Local</span>
+                </div>
+                <div
+                  class="tree-item nested"
+                  v-for="branch in activeRepository.branches.local"
+                  :key="'local-' + branch"
+                  :class="{ active: branch === activeRepository.currentBranch }"
+                  @click="switchBranch(branch)"
+                >
+                  <i class="fas fa-code-branch text-success me-1"></i>
+                  <span>{{ branch }}</span>
+                </div>
+
+                <!-- Remote -->
+                <div class="tree-item">
+                  <i class="fas fa-chevron-down tree-toggle" @click="toggle('remote')"></i>
+                  <i class="fas fa-cloud text-primary me-1"></i>
+                  <span>Remote</span>
+                </div>
+                <div
+                  class="tree-item nested"
+                  v-for="branch in activeRepository.branches.remote"
+                  :key="'remote-' + branch"
+                  @click="switchBranch(branch)"
+                >
+                  <i class="fas fa-server text-primary me-1"></i>
+                  <span>{{ branch }}</span>
+                </div>
+              </template>
+            </div>
           </div>
         </div>
       </div>
@@ -142,7 +197,7 @@ const containerWidth = ref(300);
 const previousWidth = ref(300)
 let isResizing = false;
 let isResizingContainer = false;
-const emit = defineEmits(['set-active-repo', 'remove-repo', 'toggle-workspace'])
+const emit = defineEmits(['set-active-repo', 'remove-repo', 'toggle-workspace', 'open-repository']);
 
 
 // Watch
@@ -238,6 +293,17 @@ const stopResizeContainer = () => {
   window.removeEventListener('mousemove', resizeContainer);
   window.removeEventListener('mouseup', stopResizeContainer);
 };
+
+
+function switchBranch(branchName) {
+  console.log('Chuyển nhánh:', branchName)
+  emit('switch-branch', branchName)
+}
+
+function toggle(section) {
+  console.log('Toggle tree:', section);
+  // Optional: thêm logic đóng/mở cây nếu muốn
+}
 </script>
 <style scoped>
 .horizontal-resize-wrapper {
@@ -489,5 +555,49 @@ const stopResizeContainer = () => {
 .fade-search-enter-to, .fade-search-leave-from {
   opacity: 1;
   transform: translateY(0);
+}
+
+/* Branch Tree */
+.branch-tree {
+  margin: 10px;
+}
+
+.tree-item {
+  display: flex;
+  align-items: center;
+  padding: 4px 0;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-radius: 2px;
+}
+
+.tree-item:hover {
+  background-color: var(--bg-hover);
+}
+
+.tree-item.active {
+  background-color: var(--accent-primary);
+  color: var(--bg-primary);
+}
+
+.tree-item.nested {
+  padding-left: 20px;
+}
+
+.tree-item.nested-2 {
+  padding-left: 40px;
+}
+
+.tree-toggle {
+  width: 12px;
+  margin-right: 4px;
+  font-size: 10px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.tree-toggle.collapsed {
+  transform: rotate(-90deg);
 }
 </style>

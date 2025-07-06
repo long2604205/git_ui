@@ -3,7 +3,9 @@
     <div class="row">
       <div class="col-md-12 d-flex">
         <div class="toolbar-buttons">
-          <button class="btn btn-toolbar">
+          <button class="btn btn-toolbar"
+                  @click="cloneRepository"
+          >
             <i class="fas fa-clone"></i>
             <span class="label-toolbar">Clone</span>
           </button>
@@ -31,9 +33,17 @@
   </div>
   <div class="toolbar-line"></div>
 
+  <panda-clone-form ref="cloneModal"/>
 </template>
 <script setup>
+import { ref } from 'vue'
+import PandaCloneForm from '@/components/modals/PandaCloneForm.vue'
 
+const cloneModal = ref(null);
+
+const cloneRepository = () => {
+  cloneModal.value?.openModal()
+}
 </script>
 <style scoped>
 .toolbar-panel {

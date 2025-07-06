@@ -200,7 +200,6 @@ const repositories = ref([
 ]);
 const activeRepository = ref(null)
 const isWorkspaceCollapsed = ref(false)
-const isGitCollapsed = ref(false)
 const commitData = {
   message: 'Fix login validation and update UI',
   hash: '7f3a9e2',

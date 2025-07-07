@@ -10,7 +10,7 @@
               <button
                 class="btn btn-sm workspace-action"
                 v-if="showActions"
-                @click="$emit('open-repository')"
+                @click="openRepository"
               >
                 <i class="fa-solid fa-plus"></i>
               </button>
@@ -115,7 +115,7 @@
               <input class="search-branch" placeholder="Search" />
             </div>
           </transition>
-          <div class="workspace-content">
+          <div class="workspace-content branch-tree-scroll">
             <div class="branch-tree" id="branch-tree">
               <div v-if="!activeRepository" class="no-repo-message text-center py-4">
                 <i class="fas fa-code-branch fa-2x mb-2"></i>
@@ -146,7 +146,7 @@
                   v-for="branch in activeRepository.branches.local"
                   :key="'local-' + branch"
                   :class="{ active: branch === activeRepository.currentBranch }"
-                  @click="switchBranch(branch)"
+                  @contextmenu="contextMenu?.open($event, branch)"
                 >
                   <i class="fas fa-code-branch text-success me-1"></i>
                   <span>{{ branch }}</span>
@@ -175,10 +175,16 @@
     </div>
     <div class="resizer-horizontal" @mousedown="startResizeContainer" v-if="!collapsed"></div>
   </div>
+
+  <!--  Modal-->
+  <panda-open-repository-form ref="openModal"/>
+  <branch-context-menu ref="contextMenu" @action="handleContextAction"/>
 </template>
 <script setup>
 // Props
 import { onMounted, ref, watch } from 'vue'
+import PandaOpenRepositoryForm from '@/components/modals/PandaOpenRepositoryForm.vue'
+import BranchContextMenu from '@/components/modals/BranchContextMenu.vue'
 
 const props = defineProps({
   repositories: {
@@ -197,7 +203,9 @@ const containerWidth = ref(300);
 const previousWidth = ref(300)
 let isResizing = false;
 let isResizingContainer = false;
-const emit = defineEmits(['set-active-repo', 'remove-repo', 'toggle-workspace', 'open-repository']);
+const openModal = ref(null);
+const contextMenu = ref(null)
+const emit = defineEmits(['set-active-repo', 'toggle-workspace', 'open-repository']);
 
 
 // Watch
@@ -213,6 +221,12 @@ watch(() => props.collapsed, (newVal) => {
 });
 
 // Methods
+function handleContextAction({ action, branch }) {
+  if (action === 'checkout') {
+    switchBranch(branch)
+  }
+}
+
 const onRepoClick = (repo) => {
   emit('set-active-repo', repo)
 }
@@ -296,13 +310,16 @@ const stopResizeContainer = () => {
 
 
 function switchBranch(branchName) {
-  console.log('Chuyển nhánh:', branchName)
   emit('switch-branch', branchName)
 }
 
 function toggle(section) {
   console.log('Toggle tree:', section);
   // Optional: thêm logic đóng/mở cây nếu muốn
+}
+
+const openRepository = () => {
+  openModal.value?.openModal()
 }
 </script>
 <style scoped>
@@ -558,6 +575,11 @@ function toggle(section) {
 }
 
 /* Branch Tree */
+.workspace-content.branch-tree-scroll {
+  max-height: 100%;
+  overflow-y: scroll;
+}
+
 .branch-tree {
   margin: 10px;
 }

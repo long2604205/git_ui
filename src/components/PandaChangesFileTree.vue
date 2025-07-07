@@ -91,50 +91,7 @@ import { ref, computed, watch } from 'vue'
 const props = defineProps({
   initialChangedFiles: {
     type: Array,
-    default: () => [
-      {
-        id: 1,
-        name: 'base.css',
-        path: 'src\\assets',
-        type: 'css',
-        selected: false
-      },
-      {
-        id: 2,
-        name: 'PandaDefaultContent.vue',
-        path: 'src\\components',
-        type: 'vue',
-        selected: false
-      },
-      {
-        id: 3,
-        name: 'PandaRightPanel.vue',
-        path: 'src\\components',
-        type: 'vue',
-        selected: false
-      },
-      {
-        id: 4,
-        name: 'PandaToolbar.vue',
-        path: 'src\\components',
-        type: 'vue',
-        selected: false
-      },
-      {
-        id: 4,
-        name: 'PandaToolbar.vue',
-        path: 'src\\components',
-        type: 'vue',
-        selected: false
-      },
-      {
-        id: 4,
-        name: 'PandaToolbar.vue',
-        path: 'src\\components',
-        type: 'vue',
-        selected: false
-      }
-    ]
+    default: () => []
   },
   initialUnversionedFiles: {
     type: Array,
@@ -280,6 +237,14 @@ defineExpose({
 watch(selectedFiles, (newSelected) => {
   console.log('Selected files changed:', newSelected)
 }, { deep: true })
+
+watch(
+  () => props.initialChangedFiles,
+  (newFiles) => {
+    changedFiles.value = [...newFiles]
+  },
+  { immediate: true, deep: true }
+)
 </script>
 
 <style scoped>
@@ -293,9 +258,7 @@ watch(selectedFiles, (newSelected) => {
 }
 
 .section-header {
-  //background-color: #404040;
   padding: 8px 12px;
-  //border-bottom: 1px solid #555;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -343,7 +306,6 @@ watch(selectedFiles, (newSelected) => {
   display: flex;
   align-items: center;
   transition: background-color 0.2s;
-  //border-bottom: 1px solid #555;
   cursor: pointer;
 }
 

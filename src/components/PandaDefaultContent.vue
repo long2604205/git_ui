@@ -6,40 +6,22 @@
         :active-repository="activeRepository"
         :collapsed="isWorkspaceCollapsed"
         @set-active-repo="setActiveRepository"
-        @remove-repo="removeRepository"
         @toggle-workspace="toggleWorkspacePanel"
         @switch-branch="onSwitchBranch"
-        @open-repository="openRepository"
       />
       <div class="col main-content">
-        <panda-toolbar/>
-        <panda-commit-panel
-          :repository="sampleRepository"
-          @commit="onCommit"
-          @commit-push="onCommitPush"
-          @refresh="onRefresh"
-          @force-push="onForcePush"
-          @push-tags="onPushTags"
-        />
       </div>
-      <panda-right-panel
-        :commit="commitData"
-        :is-collapsed="panelCollapsed"
-        @toggle="panelCollapsed = !panelCollapsed"
-      />
     </div>
   </div>
 </template>
 <script setup>
 import PandaRepositoryWorkspace from '@/components/PandaRepositoryWorkspace.vue'
-import { ref } from 'vue'
-import PandaRightPanel from '@/components/PandaRightPanel.vue'
-import PandaCommitPanel from '@/components/PandaCommitPanel.vue'
-import PandaToolbar from '@/components/PandaToolbar.vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import api from '@/plugins/api.js'
+import mitter from '@/plugins/mitter.js'
 
-const panelCollapsed = ref(false)
 
+/*----Data----*/
 const repositories = ref([
   {
     id: 'repo1',
@@ -51,7 +33,22 @@ const repositories = ref([
       local: ['main', 'dev', 'release/v1.0', 'feature/auth-module', 'bugfix/token-refresh', 'hotfix/login-timeout'],
       remote: ['origin/main', 'origin/dev', 'origin/release/v1.0', 'origin/feature/auth-module']
     },
-    changes: []
+    changes: [
+      {
+        id: 1,
+        name: 'base.css',
+        path: 'src\\assets',
+        type: 'css',
+        selected: false
+      },
+      {
+        id: 2,
+        name: 'PandaDefaultContent.vue',
+        path: 'src\\components',
+        type: 'vue',
+        selected: false
+      }
+    ]
   },
   {
     id: 'repo2',
@@ -63,53 +60,54 @@ const repositories = ref([
       local: ['main', 'dev', 'feature/user-management', 'feature/role-settings', 'bugfix/sidebar-collapse', 'refactor/table-component'],
       remote: ['origin/main', 'origin/dev', 'origin/feature/user-management']
     },
-    changes: ['UserList.vue', 'Sidebar.vue']
-  },
-  {
-    id: 'repo3',
-    name: 'Mobile App',
-    path: '/projects/mobile-app',
-    status: 'untracked',
-    currentBranch: 'feature/onboarding-flow',
-    branches: {
-      local: ['main', 'dev', 'feature/onboarding-flow', 'feature/push-notification', 'test/device-permissions'],
-      remote: ['origin/main', 'origin/dev', 'origin/feature/onboarding-flow']
-    },
-    changes: ['Onboarding.vue', 'PermissionService.js']
+    changes: [
+      {
+        id: 1,
+        name: 'main.css',
+        path: 'src\\assets',
+        type: 'css',
+        selected: false
+      },
+      {
+        id: 2,
+        name: 'UserController.php',
+        path: 'src\\components',
+        type: 'vue',
+        selected: false
+      }
+    ]
   }
 ])
-
 const activeRepository = ref(null)
 const isWorkspaceCollapsed = ref(false)
-const commitData = {
-  message: 'Fix login validation and update UI',
-  hash: '7f3a9e2',
-  author: 'Nguyen Van A',
-  email: 'nva@example.com',
-  time: '2025-07-01T14:30:00Z',
-  branch: 'feature/login-ui',
-  files: [
-    'src/views/LoginView.vue',
-    'src/components/BaseInput.vue',
-    'src/utils/validator.js'
-  ]
-}
-const sampleRepository = {
-  changes: [
-    { file: 'src/App.vue', type: 'Modified', status: 'modified' },
-    { file: 'src/main.js', type: 'Added', status: 'added' },
-    { file: 'README.md', type: 'Deleted', status: 'deleted' }
-  ]
-}
 
+/*----Mounted----*/
+onMounted(() => {
+  if (repositories.value.length > 0 && !activeRepository.value) {
+    activeRepository.value = repositories.value[0]
+  }
+
+  mitter.on('open-repository', (repoPath) => {
+    handleOpenRepo(repoPath)
+  })
+})
+
+onBeforeUnmount(() => {
+  mitter.off('open-repository')
+})
+
+/*----Watch----*/
+
+/*----Method----*/
 function setActiveRepository(repo) {
   activeRepository.value = repo
 }
 
-async function openRepository() {
+async function handleOpenRepo(repoPath) {
   try {
     const response = await api.post('/git/open-repository', {
-      repo_path: "C:/Users/zhilo/OneDrive/Documents/Project/Training/auto_verse"
+      // repo_path: "C:/Users/zhilo/OneDrive/Documents/Project/Training/auto_verse"
+      repo_path: repoPath
     });
 
     console.log(response.data.data)
@@ -129,36 +127,8 @@ async function openRepository() {
   }
 }
 
-
-function removeRepository(repo) {
-  repositories.value = repositories.value.filter(r => r.id !== repo.id)
-  if (activeRepository.value?.id === repo.id) {
-    activeRepository.value = null
-  }
-}
-
 function toggleWorkspacePanel() {
   isWorkspaceCollapsed.value = !isWorkspaceCollapsed.value
-}
-
-function onCommit(payload) {
-  console.log('Commit:', payload)
-}
-
-function onCommitPush(payload) {
-  console.log('Commit and Push:', payload)
-}
-
-function onRefresh() {
-  console.log('Refresh changes')
-}
-
-function onForcePush() {
-  console.log('Force push')
-}
-
-function onPushTags() {
-  console.log('Push with tags')
 }
 
 function onSwitchBranch(branch) {

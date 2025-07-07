@@ -19,13 +19,19 @@
           </span>
         </div>
         <div class="window-controls">
-          <button class="btn btn-sm window-btn" id="minimize-btn">
+          <button class="btn btn-sm window-btn" id="minimize-btn"
+                  @click="minimize"
+          >
             <i class="fas fa-minus"></i>
           </button>
-          <button class="btn btn-sm window-btn" id="maximize-btn">
-            <i class="fas fa-square"></i>
+          <button class="btn btn-sm window-btn" id="maximize-btn"
+                  @click="toggleMaximize"
+          >
+            <i :class="isMaximized ? 'fas fa-clone' : 'fas fa-square'"></i>
           </button>
-          <button class="btn btn-sm window-btn close-btn" id="close-btn">
+          <button class="btn btn-sm window-btn close-btn" id="close-btn"
+                  @click="closeApp"
+          >
             <i class="fas fa-times"></i>
           </button>
         </div>
@@ -36,6 +42,17 @@
 
 <script setup>
 import PandaMenuDropdown from './PandaMenuDropdown.vue'
+import { onMounted, ref } from 'vue'
+
+const isMaximized = ref(false)
+const minimize = () => window.electronAPI?.minimize()
+const toggleMaximize = () => window.electronAPI?.toggleMaximize()
+const closeApp = () => window.electronAPI?.closeApp()
+
+onMounted(() => {
+  window.electronAPI?.onMaximize(() => (isMaximized.value = true))
+  window.electronAPI?.onUnmaximize(() => (isMaximized.value = false))
+})
 
 const fileMenu = [
   { icon: 'fas fa-plus', label: 'New Project', action: 'new-project' },
@@ -106,6 +123,8 @@ const helpMenu = [
   padding: 0;
   min-height: 32px;
   z-index: 1000;
+  -webkit-app-region: drag;
+  user-select: none;
 }
 
 .top-navbar .nav-link {
@@ -150,6 +169,7 @@ const helpMenu = [
 .window-controls {
   display: flex;
   gap: 2px;
+  -webkit-app-region: no-drag;
 }
 
 .window-btn {
@@ -170,5 +190,9 @@ const helpMenu = [
 .close-btn:hover {
   background-color: var(--accent-danger) !important;
   color: white !important;
+}
+
+.navbar-nav {
+  -webkit-app-region: no-drag;
 }
 </style>

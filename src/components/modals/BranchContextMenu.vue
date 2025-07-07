@@ -67,7 +67,7 @@ defineExpose({ open })
   max-width: 100%;
 }
 .context-menu li:hover {
-  background-color: var(--bg-primary);
+  background-color: var(--bg-hover);
   border-radius: 4px;
 }
 </style>

@@ -112,7 +112,12 @@
               <div class="symbol-search">
                 <i class="fa-solid fa-magnifying-glass"></i>
               </div>
-              <input class="search-branch" placeholder="Search" />
+              <input
+                ref="branchSearchInput"
+                class="search-branch"
+                placeholder="search branch"
+                v-model="branch_keyword"
+              />
             </div>
           </transition>
           <div class="workspace-content branch-tree-scroll">
@@ -125,8 +130,7 @@
 
               <template v-else>
                 <!-- HEAD -->
-                <div class="tree-item">
-                  <i class="fas fa-chevron-down tree-toggle" @click="toggle('head')"></i>
+                <div class="tree-item tree-header">
                   <i class="fas fa-laptop text-info me-1"></i>
                   <span>HEAD (Current Branch)</span>
                 </div>
@@ -136,37 +140,48 @@
                 </div>
 
                 <!-- Local -->
-                <div class="tree-item">
-                  <i class="fas fa-chevron-down tree-toggle" @click="toggle('local')"></i>
+                <div class="tree-item tree-header"
+                     @click="toggle('local')">
+                  <i
+                    class="fas fa-chevron-down tree-toggle"
+                    :class="{ collapsed: collapsedTree.local }"
+                  />
                   <i class="fas fa-folder text-warning me-1"></i>
                   <span>Local</span>
                 </div>
-                <div
-                  class="tree-item nested"
-                  v-for="branch in activeRepository.branches.local"
-                  :key="'local-' + branch"
-                  :class="{ active: branch === activeRepository.currentBranch }"
-                  @contextmenu="contextMenu?.open($event, branch)"
-                >
-                  <i class="fas fa-code-branch text-success me-1"></i>
-                  <span>{{ branch }}</span>
-                </div>
+                <template v-if="!collapsedTree.local || branch_keyword">
+                  <div
+                    class="tree-item nested"
+                    v-for="branch in filteredLocalBranches"
+                    :key="'local-' + branch.raw"
+                    :class="{ active: branch.raw === activeRepository.currentBranch }"
+                    @contextmenu="contextMenu?.open($event, branch.raw)"
+                  >
+                    <i class="fas fa-code-branch text-success me-1"></i>
+                    <span v-html="branch.highlighted"></span>
+                  </div>
+                </template>
 
-                <!-- Remote -->
-                <div class="tree-item">
-                  <i class="fas fa-chevron-down tree-toggle" @click="toggle('remote')"></i>
+                <div class="tree-item tree-header"
+                     @click="toggle('remote')">
+                  <i
+                    class="fas fa-chevron-down tree-toggle"
+                    :class="{ collapsed: collapsedTree.remote }"
+                  />
                   <i class="fas fa-cloud text-primary me-1"></i>
                   <span>Remote</span>
                 </div>
-                <div
-                  class="tree-item nested"
-                  v-for="branch in activeRepository.branches.remote"
-                  :key="'remote-' + branch"
-                  @click="switchBranch(branch)"
-                >
-                  <i class="fas fa-server text-primary me-1"></i>
-                  <span>{{ branch }}</span>
-                </div>
+                <template v-if="!collapsedTree.remote || branch_keyword">
+                  <div
+                    class="tree-item nested"
+                    v-for="branch in filteredRemoteBranches"
+                    :key="'remote-' + branch.raw"
+                    @contextmenu="contextMenu?.open($event, branch.raw)"
+                  >
+                    <i class="fas fa-server text-primary me-1"></i>
+                    <span v-html="branch.highlighted"></span>
+                  </div>
+                </template>
               </template>
             </div>
           </div>
@@ -182,10 +197,11 @@
 </template>
 <script setup>
 // Props
-import { onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import PandaOpenRepositoryForm from '@/components/modals/PandaOpenRepositoryForm.vue'
 import BranchContextMenu from '@/components/modals/BranchContextMenu.vue'
 
+/*----Props----*/
 const props = defineProps({
   repositories: {
     type: Array,
@@ -194,6 +210,8 @@ const props = defineProps({
   activeRepository: Object,
   collapsed: Boolean
 })
+
+/*----Data----*/
 const showActions = ref(true);
 const showSearchRepository = ref(false);
 const showSearchBranch = ref(false);
@@ -206,9 +224,44 @@ let isResizingContainer = false;
 const openModal = ref(null);
 const contextMenu = ref(null)
 const emit = defineEmits(['set-active-repo', 'toggle-workspace', 'open-repository']);
+const branch_keyword = ref('')
+const collapsedTree = ref({
+  local: false,
+  remote: false
+})
+const branchSearchInput = ref(null)
 
+/*----Mounted----*/
+onMounted(() => {
+  const container = document.querySelector('.workspace-split')
+  if (container) {
+    containerHeight.value = container.clientHeight;
+    reposHeight.value = containerHeight.value / 2
+  }
+});
 
-// Watch
+/*----Computed----*/
+const filteredLocalBranches = computed(() => {
+  if (!props.activeRepository) return []
+  return props.activeRepository.branches.local
+    .filter(b => b.toLowerCase().includes(branch_keyword.value.toLowerCase()))
+    .map(b => ({
+      raw: b,
+      highlighted: highlightMatch(b, branch_keyword.value)
+    }))
+})
+
+const filteredRemoteBranches = computed(() => {
+  if (!props.activeRepository) return []
+  return props.activeRepository.branches.remote
+    .filter(b => b.toLowerCase().includes(branch_keyword.value.toLowerCase()))
+    .map(b => ({
+      raw: b,
+      highlighted: highlightMatch(b, branch_keyword.value)
+    }))
+})
+
+/*----Watch----*/
 watch(() => props.collapsed, (newVal) => {
   if (!newVal) {
     showActions.value = true;
@@ -220,15 +273,61 @@ watch(() => props.collapsed, (newVal) => {
   }
 });
 
-// Methods
-function handleContextAction({ action, branch }) {
-  if (action === 'checkout') {
-    switchBranch(branch)
+watch(showSearchBranch, (newVal) => {
+  if (newVal) {
+    nextTick(() => {
+      branchSearchInput.value?.focus()
+    })
   }
-}
+})
 
+/*----Method----*/
 const onRepoClick = (repo) => {
   emit('set-active-repo', repo)
+}
+
+const resizePanel = (e) => {
+  if (!isResizing) return;
+
+  const container = document.querySelector('.workspace-split');
+  const containerTop = container.getBoundingClientRect().top;
+  const newHeight = e.clientY - containerTop;
+
+  const minHeight = containerHeight.value * 0.2;
+  const maxHeight = containerHeight.value * 0.8;
+
+  reposHeight.value = Math.min(Math.max(newHeight, minHeight), maxHeight)
+};
+
+const stopResizing = () => {
+  isResizing = false;
+  window.removeEventListener('mousemove', resizePanel)
+  window.removeEventListener('mouseup', stopResizing)
+};
+
+const startResizeContainer = () => {
+  if (props.collapsed) return;
+  isResizingContainer = true;
+  window.addEventListener('mousemove', resizeContainer);
+  window.addEventListener('mouseup', stopResizeContainer);
+};
+
+const resizeContainer = (e) => {
+  if (!isResizingContainer) return;
+  const wrapperLeft = document.querySelector('.horizontal-resize-wrapper').getBoundingClientRect().left;
+  let newWidth = e.clientX - wrapperLeft;
+  newWidth = Math.min(Math.max(newWidth, 250), 500);
+  containerWidth.value = newWidth;
+};
+
+const stopResizeContainer = () => {
+  isResizingContainer = false;
+  window.removeEventListener('mousemove', resizeContainer);
+  window.removeEventListener('mouseup', stopResizeContainer);
+};
+
+const openRepository = () => {
+  openModal.value?.openModal()
 }
 
 const getStatusIcon = (status) => {
@@ -260,66 +359,29 @@ const startResizing = (e) => {
   window.addEventListener('mouseup', stopResizing);
 };
 
-const resizePanel = (e) => {
-  if (!isResizing) return;
+function highlightMatch(text, keyword) {
+  const index = text.toLowerCase().indexOf(keyword.toLowerCase())
+  if (index === -1 || !keyword) return text
 
-  const container = document.querySelector('.workspace-split');
-  const containerTop = container.getBoundingClientRect().top;
-  const newHeight = e.clientY - containerTop;
+  const before = text.substring(0, index)
+  const match = text.substring(index, index + keyword.length)
+  const after = text.substring(index + keyword.length)
 
-  const minHeight = containerHeight.value * 0.2;
-  const maxHeight = containerHeight.value * 0.8;
+  return `${before}<span class="highlight">${match}</span>${after}`
+}
 
-  reposHeight.value = Math.min(Math.max(newHeight, minHeight), maxHeight)
-};
-
-const stopResizing = () => {
-  isResizing = false;
-  window.removeEventListener('mousemove', resizePanel)
-  window.removeEventListener('mouseup', stopResizing)
-};
-
-onMounted(() => {
-  const container = document.querySelector('.workspace-split')
-  if (container) {
-    containerHeight.value = container.clientHeight;
-    reposHeight.value = containerHeight.value / 2
+function handleContextAction({ action, branch }) {
+  if (action === 'checkout') {
+    switchBranch(branch)
   }
-});
-
-const startResizeContainer = (e) => {
-  if (props.collapsed) return;
-  isResizingContainer = true;
-  window.addEventListener('mousemove', resizeContainer);
-  window.addEventListener('mouseup', stopResizeContainer);
-};
-
-const resizeContainer = (e) => {
-  if (!isResizingContainer) return;
-  const wrapperLeft = document.querySelector('.horizontal-resize-wrapper').getBoundingClientRect().left;
-  let newWidth = e.clientX - wrapperLeft;
-  newWidth = Math.min(Math.max(newWidth, 250), 500);
-  containerWidth.value = newWidth;
-};
-
-const stopResizeContainer = () => {
-  isResizingContainer = false;
-  window.removeEventListener('mousemove', resizeContainer);
-  window.removeEventListener('mouseup', stopResizeContainer);
-};
-
+}
 
 function switchBranch(branchName) {
   emit('switch-branch', branchName)
 }
 
 function toggle(section) {
-  console.log('Toggle tree:', section);
-  // Optional: thêm logic đóng/mở cây nếu muốn
-}
-
-const openRepository = () => {
-  openModal.value?.openModal()
+  collapsedTree.value[section] = !collapsedTree.value[section]
 }
 </script>
 <style scoped>
@@ -484,12 +546,12 @@ const openRepository = () => {
 
 .repo-item:hover {
   background-color: var(--bg-hover);
-  border-radius: 15px;
+  border-radius: 10px;
 }
 
 .repo-item.active {
   background-color: var(--bg-hover);
-  border-radius: 15px;
+  border-radius: 10px;
 }
 
 .repo-icon {
@@ -588,10 +650,11 @@ const openRepository = () => {
   display: flex;
   align-items: center;
   padding: 4px 0;
-  font-size: 12px;
+  font-size: 14px;
   cursor: pointer;
   transition: background-color 0.2s ease;
-  border-radius: 2px;
+  border-radius: 5px;
+  user-select: none;
 }
 
 .tree-item:hover {
@@ -599,8 +662,8 @@ const openRepository = () => {
 }
 
 .tree-item.active {
-  background-color: var(--accent-primary);
-  color: var(--bg-primary);
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
 }
 
 .tree-item.nested {
@@ -621,5 +684,22 @@ const openRepository = () => {
 
 .tree-toggle.collapsed {
   transform: rotate(-90deg);
+}
+
+.tree-toggle.collapsed {
+  transform: rotate(-90deg);
+}
+
+.tree-header {
+  cursor: pointer;
+}
+
+.tree-item.tree-header:hover {
+  background-color: transparent;
+}
+
+::v-deep(.highlight) {
+  background-color: #ff9700;
+  color: black;
 }
 </style>

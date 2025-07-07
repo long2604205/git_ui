@@ -6,7 +6,11 @@
         <panda-menu-dropdown label="File" :items="fileMenu" />
         <panda-menu-dropdown label="View" :items="viewMenu" />
         <panda-menu-dropdown label="Git" :items="gitMenu" />
-        <panda-menu-dropdown label="Window" :items="windowMenu" />
+        <panda-menu-dropdown
+          label="Window"
+          :items="windowMenu"
+          @action="handleMenuAction"
+        />
         <panda-menu-dropdown label="Help" :items="helpMenu" />
       </div>
 
@@ -19,13 +23,19 @@
           </span>
         </div>
         <div class="window-controls">
-          <button class="btn btn-sm window-btn" id="minimize-btn">
+          <button class="btn btn-sm window-btn" id="minimize-btn"
+                  @click="minimize"
+          >
             <i class="fas fa-minus"></i>
           </button>
-          <button class="btn btn-sm window-btn" id="maximize-btn">
-            <i class="fas fa-square"></i>
+          <button class="btn btn-sm window-btn" id="maximize-btn"
+                  @click="toggleMaximize"
+          >
+            <i :class="isMaximized ? 'fas fa-clone' : 'fas fa-square'"></i>
           </button>
-          <button class="btn btn-sm window-btn close-btn" id="close-btn">
+          <button class="btn btn-sm window-btn close-btn" id="close-btn"
+                  @click="closeApp"
+          >
             <i class="fas fa-times"></i>
           </button>
         </div>
@@ -36,6 +46,18 @@
 
 <script setup>
 import PandaMenuDropdown from './PandaMenuDropdown.vue'
+import { onMounted, ref } from 'vue'
+
+const isMaximized = ref(false)
+const minimize = () => window.electronAPI?.minimize()
+const maximize = () => window.electronAPI?.maximize()
+const toggleMaximize = () => window.electronAPI?.toggleMaximize()
+const closeApp = () => window.electronAPI?.closeApp()
+
+onMounted(() => {
+  window.electronAPI?.onMaximize(() => (isMaximized.value = true))
+  window.electronAPI?.onUnmaximize(() => (isMaximized.value = false))
+})
 
 const fileMenu = [
   { icon: 'fas fa-plus', label: 'New Project', action: 'new-project' },
@@ -66,15 +88,31 @@ const gitMenu = [
 ]
 
 const windowMenu = [
-  { icon: 'fas fa-window-minimize', label: 'Minimize' },
-  { icon: 'fas fa-window-maximize', label: 'Maximize' },
-  { icon: 'fas fa-window-close', label: 'Close' }
+  { icon: 'fas fa-window-minimize', label: 'Minimize', action: "minimize" },
+  { icon: 'fas fa-window-maximize', label: 'Maximize', action: "toggle-maximize" },
+  { icon: 'fas fa-window-close', label: 'Close', action: "close" }
 ]
 
 const helpMenu = [
   { icon: 'fas fa-question-circle', label: 'Help Topics' },
   { icon: 'fas fa-info-circle', label: 'About' }
 ]
+
+const handleMenuAction = (action) => {
+  switch (action) {
+    case 'minimize':
+      minimize()
+      break
+    case 'toggle-maximize':
+      maximize()
+      break
+    case 'close':
+      closeApp()
+      break
+    default:
+      console.log('Action:', action)
+  }
+}
 </script>
 <style scoped>
 ::-webkit-scrollbar {
@@ -106,6 +144,8 @@ const helpMenu = [
   padding: 0;
   min-height: 32px;
   z-index: 1000;
+  -webkit-app-region: drag;
+  user-select: none;
 }
 
 .top-navbar .nav-link {
@@ -150,6 +190,7 @@ const helpMenu = [
 .window-controls {
   display: flex;
   gap: 2px;
+  -webkit-app-region: no-drag;
 }
 
 .window-btn {
@@ -170,5 +211,9 @@ const helpMenu = [
 .close-btn:hover {
   background-color: var(--accent-danger) !important;
   color: white !important;
+}
+
+.navbar-nav {
+  -webkit-app-region: no-drag;
 }
 </style>

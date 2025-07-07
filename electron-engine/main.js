@@ -1,5 +1,5 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
-import { join, dirname } from 'path'
+import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -18,21 +18,21 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
     },
-  });
+  })
 
   win.once('ready-to-show', () => {
-    win.maximize();
-    win.show();
-  });
+    win.maximize()
+    win.show()
+  })
 
   win.on('restore', () => {
     if (!win.isMaximized()) {
-      win.setSize(1200, 800);
+      win.setSize(1200, 800)
     }
-  });
+  })
 
   win.loadFile(join(__dirname, '../dist/index.html'))
-  // win.webContents.openDevTools()
+  win.webContents.openDevTools()
 
   ipcMain.on('close-app', () => win.close())
   ipcMain.on('minimize', () => win.minimize())
@@ -44,6 +44,14 @@ function createWindow() {
       win.unmaximize()
     } else {
       win.maximize()
+    }
+  })
+
+  ipcMain.handle('get-memory-info', async () => {
+    // eslint-disable-next-line no-undef
+    const memoryInfo = await process.getProcessMemoryInfo()
+    return {
+      ramKB: memoryInfo.residentSet
     }
   })
 

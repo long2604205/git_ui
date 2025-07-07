@@ -6,7 +6,11 @@
         <panda-menu-dropdown label="File" :items="fileMenu" />
         <panda-menu-dropdown label="View" :items="viewMenu" />
         <panda-menu-dropdown label="Git" :items="gitMenu" />
-        <panda-menu-dropdown label="Window" :items="windowMenu" />
+        <panda-menu-dropdown
+          label="Window"
+          :items="windowMenu"
+          @action="handleMenuAction"
+        />
         <panda-menu-dropdown label="Help" :items="helpMenu" />
       </div>
 
@@ -46,6 +50,7 @@ import { onMounted, ref } from 'vue'
 
 const isMaximized = ref(false)
 const minimize = () => window.electronAPI?.minimize()
+const maximize = () => window.electronAPI?.maximize()
 const toggleMaximize = () => window.electronAPI?.toggleMaximize()
 const closeApp = () => window.electronAPI?.closeApp()
 
@@ -83,15 +88,31 @@ const gitMenu = [
 ]
 
 const windowMenu = [
-  { icon: 'fas fa-window-minimize', label: 'Minimize' },
-  { icon: 'fas fa-window-maximize', label: 'Maximize' },
-  { icon: 'fas fa-window-close', label: 'Close' }
+  { icon: 'fas fa-window-minimize', label: 'Minimize', action: "minimize" },
+  { icon: 'fas fa-window-maximize', label: 'Maximize', action: "toggle-maximize" },
+  { icon: 'fas fa-window-close', label: 'Close', action: "close" }
 ]
 
 const helpMenu = [
   { icon: 'fas fa-question-circle', label: 'Help Topics' },
   { icon: 'fas fa-info-circle', label: 'About' }
 ]
+
+const handleMenuAction = (action) => {
+  switch (action) {
+    case 'minimize':
+      minimize()
+      break
+    case 'toggle-maximize':
+      maximize()
+      break
+    case 'close':
+      closeApp()
+      break
+    default:
+      console.log('Action:', action)
+  }
+}
 </script>
 <style scoped>
 ::-webkit-scrollbar {

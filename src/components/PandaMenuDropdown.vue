@@ -5,7 +5,10 @@
       <template v-for="(item, index) in items" :key="index">
         <li v-if="item === 'divider'"><hr class="dropdown-divider" /></li>
         <li v-else>
-          <a class="dropdown-item" href="#" :data-action="item.action">
+          <a class="dropdown-item"
+             href="#"
+             :data-action="item.action"
+             @click.prevent="emit('action', item.action)">
             <i :class="[item.icon, 'me-2']"></i>{{ item.label }}
           </a>
         </li>
@@ -19,6 +22,8 @@ defineProps({
   label: String,
   items: Array
 })
+
+const emit = defineEmits(['action'])
 </script>
 <style scoped>
 .nav-item .nav-link {

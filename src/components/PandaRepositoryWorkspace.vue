@@ -1,6 +1,6 @@
 <template>
   <div class="horizontal-resize-wrapper" :style="{ width: containerWidth + 'px' }">
-    <div class="workspace-container" :class="{ collapsed: collapsed }">
+    <div class="workspace-container" :class="{ collapsed: isWorkspaceCollapsed }">
       <div class="workspace-panel workspace-split">
         <div class="repositories-workspace" :style="{ height: reposHeight + 'px' }">
           <!-- Header -->
@@ -27,8 +27,8 @@
               >
                 <i class="fa-solid fa-ellipsis-vertical"></i>
               </button>
-              <button class="btn btn-sm workspace-action" @click="$emit('toggle-workspace')">
-                <i :class="['fas', collapsed ? 'fa-solid fa-layer-group' : 'fa-solid fa-minus']"></i>
+              <button class="btn btn-sm workspace-action" @click="toggleWorkspacePanel">
+                <i :class="['fas', isWorkspaceCollapsed ? 'fa-solid fa-layer-group' : 'fa-solid fa-minus']"></i>
               </button>
             </div>
           </div>
@@ -37,7 +37,12 @@
               <div class="symbol-search">
                 <i class="fa-solid fa-magnifying-glass"></i>
               </div>
-              <input class="search-branch" placeholder="Search" />
+              <input
+                ref="repositorySearchInput"
+                class="search-branch"
+                placeholder="search repository"
+                v-model="repositoryKeyword"
+              />
             </div>
           </transition>
 
@@ -54,11 +59,11 @@
 
               <template v-else>
                 <div
-                  v-for="repo in repositories"
+                  v-for="repo in filteredRepositories"
                   :key="repo.id"
                   class="repo-item"
                   :class="{ active: activeRepository && activeRepository.id === repo.id }"
-                  @click="onRepoClick(repo)"
+                  @click="setActiveRepository(repo)"
                 >
                   <div class="repo-icon">
                     <i class="fas fa-folder text-warning"></i>
@@ -116,7 +121,7 @@
                 ref="branchSearchInput"
                 class="search-branch"
                 placeholder="search branch"
-                v-model="branch_keyword"
+                v-model="branchKeyword"
               />
             </div>
           </transition>
@@ -149,7 +154,7 @@
                   <i class="fas fa-folder text-warning me-1"></i>
                   <span>Local</span>
                 </div>
-                <template v-if="!collapsedTree.local || branch_keyword">
+                <template v-if="!collapsedTree.local || branchKeyword">
                   <div
                     class="tree-item nested"
                     v-for="branch in filteredLocalBranches"
@@ -171,7 +176,7 @@
                   <i class="fas fa-cloud text-primary me-1"></i>
                   <span>Remote</span>
                 </div>
-                <template v-if="!collapsedTree.remote || branch_keyword">
+                <template v-if="!collapsedTree.remote || branchKeyword">
                   <div
                     class="tree-item nested"
                     v-for="branch in filteredRemoteBranches"
@@ -188,7 +193,7 @@
         </div>
       </div>
     </div>
-    <div class="resizer-horizontal" @mousedown="startResizeContainer" v-if="!collapsed"></div>
+    <div class="resizer-horizontal" @mousedown="startResizeContainer" v-if="!isWorkspaceCollapsed"></div>
   </div>
 
   <!--  Modal-->
@@ -197,19 +202,11 @@
 </template>
 <script setup>
 // Props
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import PandaOpenRepositoryForm from '@/components/modals/PandaOpenRepositoryForm.vue'
 import BranchContextMenu from '@/components/modals/BranchContextMenu.vue'
-
-/*----Props----*/
-const props = defineProps({
-  repositories: {
-    type: Array,
-    default: () => []
-  },
-  activeRepository: Object,
-  collapsed: Boolean
-})
+import mitter from '@/plugins/mitter.js'
+import api from '@/plugins/api.js'
 
 /*----Data----*/
 const showActions = ref(true);
@@ -223,13 +220,72 @@ let isResizing = false;
 let isResizingContainer = false;
 const openModal = ref(null);
 const contextMenu = ref(null)
-const emit = defineEmits(['set-active-repo', 'toggle-workspace', 'open-repository']);
-const branch_keyword = ref('')
+const branchKeyword = ref('')
+const repositoryKeyword = ref('')
 const collapsedTree = ref({
   local: false,
   remote: false
 })
+const isWorkspaceCollapsed = ref(false)
 const branchSearchInput = ref(null)
+const repositorySearchInput = ref(null)
+const activeRepository = ref(null)
+const repositories = ref([
+  {
+    id: 'repo1',
+    name: 'Core API',
+    path: 'C:/Users/zhilo/OneDrive/Documents/Project/Training/auto_verse',
+    status: 'clean',
+    currentBranch: 'main',
+    branches: {
+      local: ['main', 'dev', 'release/v1.0', 'feature/auth-module', 'bugfix/token-refresh', 'hotfix/login-timeout'],
+      remote: ['origin/main', 'origin/dev', 'origin/release/v1.0', 'origin/feature/auth-module']
+    },
+    changes: [
+      {
+        id: 1,
+        name: 'base.css',
+        path: 'src\\assets',
+        type: 'css',
+        selected: false
+      },
+      {
+        id: 2,
+        name: 'PandaDefaultContent.vue',
+        path: 'src\\components',
+        type: 'vue',
+        selected: false
+      }
+    ]
+  },
+  {
+    id: 'repo2',
+    name: 'Admin Dashboard',
+    path: '/projects/admin-dashboard',
+    status: 'dirty',
+    currentBranch: 'dev',
+    branches: {
+      local: ['main', 'dev', 'feature/user-management', 'feature/role-settings', 'bugfix/sidebar-collapse', 'refactor/table-component'],
+      remote: ['origin/main', 'origin/dev', 'origin/feature/user-management']
+    },
+    changes: [
+      {
+        id: 1,
+        name: 'main.css',
+        path: 'src\\assets',
+        type: 'css',
+        selected: false
+      },
+      {
+        id: 2,
+        name: 'UserController.php',
+        path: 'src\\components',
+        type: 'vue',
+        selected: false
+      }
+    ]
+  }
+])
 
 /*----Mounted----*/
 onMounted(() => {
@@ -238,31 +294,49 @@ onMounted(() => {
     containerHeight.value = container.clientHeight;
     reposHeight.value = containerHeight.value / 2
   }
+
+  if (repositories.value.length > 0 && !activeRepository.value) {
+    activeRepository.value = repositories.value[0]
+  }
+
+  mitter.on('open-repository', (repoPath) => {
+    handleOpenRepo(repoPath)
+  })
 });
+
+onBeforeUnmount(() => {
+  mitter.off('open-repository')
+})
 
 /*----Computed----*/
 const filteredLocalBranches = computed(() => {
-  if (!props.activeRepository) return []
-  return props.activeRepository.branches.local
-    .filter(b => b.toLowerCase().includes(branch_keyword.value.toLowerCase()))
+  if (!activeRepository.value) return []
+  return activeRepository.value.branches.local
+    .filter(b => b.toLowerCase().includes(branchKeyword.value.toLowerCase()))
     .map(b => ({
       raw: b,
-      highlighted: highlightMatch(b, branch_keyword.value)
+      highlighted: highlightMatch(b, branchKeyword.value)
     }))
 })
 
 const filteredRemoteBranches = computed(() => {
-  if (!props.activeRepository) return []
-  return props.activeRepository.branches.remote
-    .filter(b => b.toLowerCase().includes(branch_keyword.value.toLowerCase()))
+  if (!activeRepository.value) return []
+  return activeRepository.value.branches.remote
+    .filter(b => b.toLowerCase().includes(branchKeyword.value.toLowerCase()))
     .map(b => ({
       raw: b,
-      highlighted: highlightMatch(b, branch_keyword.value)
+      highlighted: highlightMatch(b, branchKeyword.value)
     }))
 })
 
+const filteredRepositories = computed(() => {
+  if (!activeRepository.value) return []
+  return repositories.value
+    .filter(repo => repo.name.toLowerCase().includes(repositoryKeyword.value.toLowerCase()))
+})
+
 /*----Watch----*/
-watch(() => props.collapsed, (newVal) => {
+watch(() => isWorkspaceCollapsed.value, (newVal) => {
   if (!newVal) {
     showActions.value = true;
     containerWidth.value = previousWidth.value;
@@ -281,11 +355,15 @@ watch(showSearchBranch, (newVal) => {
   }
 })
 
-/*----Method----*/
-const onRepoClick = (repo) => {
-  emit('set-active-repo', repo)
-}
+watch(showSearchRepository, (newVal) => {
+  if (newVal) {
+    nextTick(() => {
+      repositorySearchInput.value?.focus()
+    })
+  }
+})
 
+/*----Method----*/
 const resizePanel = (e) => {
   if (!isResizing) return;
 
@@ -306,7 +384,7 @@ const stopResizing = () => {
 };
 
 const startResizeContainer = () => {
-  if (props.collapsed) return;
+  if (isWorkspaceCollapsed.value) return;
   isResizingContainer = true;
   window.addEventListener('mousemove', resizeContainer);
   window.addEventListener('mouseup', stopResizeContainer);
@@ -348,7 +426,7 @@ const getStatusColor = (status) => {
   }
 }
 
-const startResizing = (e) => {
+const startResizing = () => {
   const container = document.querySelector('.workspace-split');
   if (!container) return;
 
@@ -377,11 +455,46 @@ function handleContextAction({ action, branch }) {
 }
 
 function switchBranch(branchName) {
-  emit('switch-branch', branchName)
+  if (activeRepository.value) {
+    activeRepository.value.currentBranch = branchName
+  }
 }
 
 function toggle(section) {
   collapsedTree.value[section] = !collapsedTree.value[section]
+}
+
+function setActiveRepository(repo) {
+  activeRepository.value = repo
+  mitter.emit('set-active-repository', repo)
+}
+
+function toggleWorkspacePanel() {
+  isWorkspaceCollapsed.value = !isWorkspaceCollapsed.value
+}
+
+async function handleOpenRepo(repoPath) {
+  try {
+    const response = await api.post('/git/open-repository', {
+      // repo_path: "C:/Users/zhilo/OneDrive/Documents/Project/Training/auto_verse"
+      repo_path: repoPath
+    });
+
+    console.log(response.data.data)
+    const result = response.data.data
+
+    if (result) {
+      repositories.value.push(result);
+      activeRepository.value = result;
+
+      console.log('✅ Repo opened:', result.name);
+    } else {
+      console.error('❌ Failed to open repository: No data returned');
+    }
+
+  } catch (error) {
+    console.error('❌ Error opening repository:', error.message);
+  }
 }
 </script>
 <style scoped>

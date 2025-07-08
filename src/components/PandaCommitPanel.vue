@@ -20,89 +20,49 @@
 
     <div class="row commit-workspace">
       <div class="changes-list col-6">
-<!--        <div class="file-tree">-->
-<!--          &lt;!&ndash; Changes Section &ndash;&gt;-->
-<!--          <div-->
-<!--            class="section-header"-->
-<!--            :class="{ collapsed: !changesSectionExpanded }"-->
-<!--          >-->
-<!--            <i-->
-<!--              class="fas fa-caret-down collapse-icon"-->
-<!--              :class="{ collapsed: !changesSectionExpanded }"-->
-<!--              @click="toggleChangesSection"-->
-<!--            ></i>-->
-<!--            <input-->
-<!--              type="checkbox"-->
-<!--              class="file-checkbox"-->
-<!--            >-->
-<!--            <span class="section-title">Changes {{ changedFiles.length }} files</span>-->
-<!--          </div>-->
-<!--          <transition name="collapse">-->
-<!--            <div v-show="changesSectionExpanded" class="section-content">-->
-<!--              <ul class="file-list">-->
-<!--                <li-->
-<!--                  v-for="file in changedFiles"-->
-<!--                  :key="file.id"-->
-<!--                  class="file-item"-->
-<!--                >-->
-<!--                  <input-->
-<!--                    type="checkbox"-->
-<!--                    class="file-checkbox"-->
-<!--                    :id="`file-${file.id}`"-->
-<!--                    v-model="file.selected"-->
-<!--                    @click="toggleFileSelection(file, $event)"-->
-<!--                    @click.stop-->
-<!--                    @change="onFileSelectionChange(file)"-->
-<!--                  >-->
-<!--                  <i :class="getFileIconClass(file)"></i>-->
-<!--                  <span class="file-name">{{ file.name }}</span>-->
-<!--                  <span v-if="file.path" class="file-path">{{ file.path }}</span>-->
-<!--                </li>-->
-<!--              </ul>-->
-<!--            </div>-->
-<!--          </transition>-->
-
-<!--          &lt;!&ndash; Unversioned Files Section &ndash;&gt;-->
-<!--          <div-->
-<!--            class="section-header"-->
-<!--            :class="{ collapsed: !unversionedSectionExpanded }"-->
-<!--          >-->
-<!--            <i-->
-<!--              class="fas fa-caret-down collapse-icon"-->
-<!--              :class="{ collapsed: !unversionedSectionExpanded }"-->
-<!--              @click="toggleUnversionedSection"-->
-<!--            ></i>-->
-<!--            <input-->
-<!--              type="checkbox"-->
-<!--              class="file-checkbox"-->
-<!--            >-->
-<!--            <span class="section-title">Unversioned Files {{ unversionedFiles.length }} file</span>-->
-<!--          </div>-->
-<!--          <transition name="collapse">-->
-<!--            <div v-show="unversionedSectionExpanded" class="section-content">-->
-<!--              <ul class="file-list">-->
-<!--                <li-->
-<!--                  v-for="file in unversionedFiles"-->
-<!--                  :key="file.id"-->
-<!--                  class="file-item"-->
-<!--                >-->
-<!--                  <input-->
-<!--                    type="checkbox"-->
-<!--                    class="file-checkbox"-->
-<!--                    :id="`file-${file.id}`"-->
-<!--                    v-model="file.selected"-->
-<!--                    @click="toggleFileSelection(file, $event)"-->
-<!--                    @click.stop-->
-<!--                    @change="onFileSelectionChange(file)"-->
-<!--                  >-->
-<!--                  <i :class="getFileIconClass(file)"></i>-->
-<!--                  <span class="file-name">{{ file.name }}</span>-->
-<!--                  <span v-if="file.path" class="file-path">{{ file.path }}</span>-->
-<!--                </li>-->
-<!--              </ul>-->
-<!--            </div>-->
-<!--          </transition>-->
-<!--        </div>-->
+        <div class="file-tree">
+          <!-- Changes Section -->
+          <div
+            class="section-header"
+            :class="{ collapsed: !changesSectionExpanded }"
+          >
+            <i
+              class="fas fa-caret-down collapse-icon"
+              :class="{ collapsed: !changesSectionExpanded }"
+              @click="toggleChangesSection"
+            ></i>
+            <input
+              type="checkbox"
+              class="file-checkbox"
+              :checked="areAllFilesChecked"
+              @change="setAllChecked($event.target.checked)"
+            >
+            <span class="section-title">Changes {{ changes.length }} files</span>
+          </div>
+          <transition name="collapse">
+            <div v-show="changesSectionExpanded" class="section-content">
+              <ul class="file-list">
+                <li
+                  v-for="file in changes"
+                  :key="file.id"
+                  class="file-item"
+                >
+                  <input
+                    type="checkbox"
+                    class="file-checkbox"
+                    :id="`file-${file.id}`"
+                    v-model="file.checked"
+                    @click="toggleFileSelection(file, $event)"
+                    @click.stop
+                  >
+                  <i :class="getFileIconClass(file)"></i>
+                  <span class="file-name">{{ file.name }}</span>
+                  <span v-if="file.path" class="file-path">{{ file.path }}</span>
+                </li>
+              </ul>
+            </div>
+          </transition>
+        </div>
       </div>
 
       <div class="commit-form col-6">
@@ -136,18 +96,20 @@
 
           <!-- Right: Buttons -->
           <div>
+            <!-- Commit -->
             <button
               class="btn btn-commit btn-sm me-2"
               :disabled="!canCommit"
-              @click="$emit('commit', { message: commitMessage, changes })"
+              @click="handleCommit(false)"
             >
               Commit
             </button>
 
+            <!-- Commit & Push -->
             <button
               class="btn btn-commit-push btn-sm"
               :disabled="!canCommit"
-              @click="$emit('commit-push', { message: commitMessage, changes })"
+              @click="handleCommit(true)"
             >
               Commit and Push
             </button>
@@ -157,44 +119,125 @@
     </div>
     <div class="line-style-content"></div>
   </div>
-  <panda-git-log-panel/>
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
-import PandaChangesFileTree from '@/components/PandaChangesFileTree.vue'
-import PandaGitLogPanel from '@/components/PandaGitLogPanel.vue'
-
-const props = defineProps({
-  repository: {
-    type: Object,
-    default: () => ({
-      changes: []
-    })
-  }
-})
-
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import mitter from '@/plugins/mitter.js'
+/*----Data----*/
 const amend = ref(false)
 const signOff = ref(false)
 const commitMessage = ref("")
-const changes = ref([...props.repository.changes.map(c => ({ ...c, checked: true }))])
+const changes = ref([])
+const changesSectionExpanded = ref(true)
+const areAllFilesChecked = ref(false)
+const activeRepository = ref(null)
 
+/*----Mounted----*/
+onMounted(() => {
+  mitter.on('set-active-repository', handleSetActive)
+})
+
+onBeforeUnmount(() => {
+  mitter.off('set-active-repository', handleSetActive)
+})
+
+
+/*----Computed----*/
+const canCommit = computed(() =>
+  commitMessage.value.trim() !== "" && changes.value.some(c => c.checked)
+)
+
+const selectedFilePaths = computed(() => {
+  return changes.value
+    .filter(file => file.checked)
+    .map(file => file.path)
+})
+
+/*----Watch----*/
 watch(
-  () => props.repository.changes,
-  (newChanges) => {
-    console.log('📌 props.repository.changes changed:', newChanges)
-    changes.value = [...(newChanges || []).map(c => ({ ...c, checked: true }))]
+  () => activeRepository.value,
+  (newRepo) => {
+    if (newRepo?.changes && Array.isArray(newRepo.changes)) {
+      changes.value = newRepo.changes.map(c => ({ ...c, checked: false }))
+    }
   },
   { immediate: true }
 )
 
+watch(changes, () => {
+  areAllFilesChecked.value =
+    changes.value.length > 0 &&
+    changes.value.every(file => file.checked)
+}, { deep: true })
 
+/*----Method----*/
+function handleCommit(push = false) {
+  const payload = {
+    message: commitMessage.value,
+    files: selectedFilePaths.value,
+    amend: amend.value,
+    signoff: signOff.value,
+    push: push
+  }
 
-const canCommit = computed(() => commitMessage.value.trim() !== "" && changes.value.some(c => c.checked))
+  alert(JSON.stringify(payload, null, 2)) // ← Show payload đẹp
 
-const onChangeClick = (change, index) => {
-  // Optional: highlight/select action
-  console.log("Selected change:", change)
+  // ✅ Gỡ comment phần bên dưới khi muốn gọi API thật:
+  /*
+  try {
+    const res = await axios.post('http://localhost:5000/api/v1/git/commit', payload)
+    alert(res.data.message || 'Commit thành công!')
+    commitMessage.value = ''
+  } catch (error) {
+    alert(error.response?.data?.message || 'Lỗi commit!')
+    console.error(error)
+  }
+  */
+}
+
+function setAllChecked(checked) {
+  areAllFilesChecked.value = checked
+  changes.value.forEach(file => {
+    file.checked = checked
+  })
+}
+
+const toggleChangesSection = () => {
+  changesSectionExpanded.value = !changesSectionExpanded.value
+}
+
+const toggleFileSelection = (file, event) => {
+  if (event.target.type !== 'checkbox') {
+    file.selected = !file.selected
+  }
+}
+
+const getFileIconClass = (file) => {
+  const baseClasses = 'file-icon'
+
+  if (file.locked) {
+    return `fas fa-lock ${baseClasses} locked`
+  }
+
+  switch (file.type) {
+    case 'css':
+      return `fas fa-file-code ${baseClasses} css`
+    case 'vue':
+      return `fab fa-vuejs ${baseClasses} vue`
+    case 'json':
+      return `fas fa-file-code ${baseClasses} json`
+    case 'js':
+      return `fab fa-js-square ${baseClasses} js`
+    case 'html':
+      return `fab fa-html5 ${baseClasses} html`
+    default:
+      return `fas fa-file ${baseClasses}`
+  }
+}
+
+function handleSetActive(repo) {
+  activeRepository.value = repo
 }
 </script>
 
@@ -371,6 +414,7 @@ const onChangeClick = (change, index) => {
   align-items: center;
   transition: background-color 0.2s;
   user-select: none;
+  border-radius: 10px;
 }
 
 .section-header:hover {
@@ -406,6 +450,10 @@ const onChangeClick = (change, index) => {
   padding: 0;
   margin: 0;
   list-style: none;
+}
+
+.file-list ul li{
+  border-radius: 10px;
 }
 
 .file-item {

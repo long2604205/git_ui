@@ -1,46 +1,42 @@
 <template>
-  <div class="modal fade" id="cloneRepoModal" tabindex="-1" ref="modalRef">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Open Repository</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <div class="mb-3">
-            <label for="clone-path" class="form-label">Repository Path</label>
-            <div class="input-group">
-              <input v-model="pathRepositories" type="text" class="form-control" id="clone-path" placeholder="Local directory path">
-              <button
-                class="btn btn-open-local"
-                type="button"
-                id="browse-clone"
-                @click="chooseFolder">
-                <i class="fas fa-folder-open"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-cancel" data-bs-dismiss="modal">Cancel</button>
+  <base-form
+    v-model="visible"
+    title="Open Repository">
+    <template #content>
+      <div class="mb-3">
+        <label for="clone-path" class="form-label">Repository Path</label>
+        <div class="input-group">
+          <input v-model="pathRepositories" type="text" class="form-control" id="clone-path" placeholder="Local directory path">
           <button
+            class="btn btn-open-local"
             type="button"
-            class="btn btn-clone"
-            id="clone-repo-confirm"
-            @click="openRepository"
-          >
-            <span>Open</span>
+            id="browse-clone"
+            @click="chooseFolder">
+            <i class="fas fa-folder-open"></i>
           </button>
         </div>
       </div>
-    </div>
-  </div>
+    </template>
+    <template #footer>
+      <button type="button" class="btn btn-cancel" data-bs-dismiss="modal">Cancel</button>
+      <button
+        type="button"
+        class="btn btn-clone"
+        id="clone-repo-confirm"
+        @click="openRepository"
+      >
+        <span>Open</span>
+      </button>
+    </template>
+  </base-form>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { Modal } from 'bootstrap'
 import mitter from '@/plugins/mitter.js'
+import BaseForm from '@/components/modals/BaseForm.vue'
+const visible = ref(false)
 
 const modalRef = ref(null)
 const pathRepositories = ref('')
@@ -80,20 +76,6 @@ defineExpose({
 *{
   font-size: 14px;
 }
-.modal-content {
-  background-color: var(--bg-secondary);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
-}
-
-.modal-header {
-  border-bottom: 1px solid var(--border-color);
-}
-
-.modal-footer {
-  border-top: 1px solid var(--border-color);
-}
-
  .btn-cancel, .btn-clone, .btn-clone:disabled {
   background: var(--bg-tertiary);
   color: var(--text-secondary);

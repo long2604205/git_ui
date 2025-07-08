@@ -5,9 +5,6 @@
       <panda-repository-workspace/>
 
       <div class="col main-content">
-        <button class="btn btn-primary" @click="openForm">
-          <span>Open</span>
-        </button>
         <!--Toolbar-->
         <panda-toolbar/>
 
@@ -21,11 +18,6 @@
 import PandaRepositoryWorkspace from '@/components/PandaRepositoryWorkspace.vue'
 import PandaToolbar from '@/components/PandaToolbar.vue'
 import PandaCommitPanel from '@/components/PandaCommitPanel.vue'
-import { showPageInModal } from '@/services/modals.js'
-import TestCom from '@/components/TestCom.vue'
-function openForm() {
-  showPageInModal(TestCom, { params: { name: 'Long' } }, { width: '30%'})
-}
 </script>
 <style scoped>
 .main-container {

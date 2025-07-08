@@ -3,7 +3,11 @@
     <div class="container-fluid px-2">
       <!-- left menu -->
       <div class="navbar-nav flex-row">
-        <panda-menu-dropdown label="File" :items="fileMenu" />
+        <panda-menu-dropdown
+          label="File"
+          :items="fileMenu"
+          @action="handleMenuAction"
+        />
         <panda-menu-dropdown label="View" :items="viewMenu" />
         <panda-menu-dropdown label="Git" :items="gitMenu" />
         <panda-menu-dropdown
@@ -47,6 +51,8 @@
 <script setup>
 import PandaMenuDropdown from './PandaMenuDropdown.vue'
 import { onMounted, ref } from 'vue'
+import { showPageInModal } from '@/services/modals.js'
+import PandaOpenRepositoryForm from '@/components/modals/PandaOpenRepositoryForm.vue'
 
 const isMaximized = ref(false)
 const minimize = () => window.electronAPI?.minimize()
@@ -62,7 +68,7 @@ onMounted(() => {
 const fileMenu = [
   { icon: 'fas fa-plus', label: 'New Project', action: 'new-project' },
   { icon: 'fas fa-folder-open', label: 'Open Project', action: 'open-project' },
-  { icon: 'fas fa-code-branch', label: 'Open Repository', action: 'open-repo' },
+  { icon: 'fas fa-code-branch', label: 'Open Repository', action: 'open-repository' },
   'divider',
   { icon: 'fas fa-times', label: 'Close Project', action: 'close-project' },
   { icon: 'fas fa-sign-out-alt', label: 'Exit', action: 'exit' }
@@ -100,6 +106,9 @@ const helpMenu = [
 
 const handleMenuAction = (action) => {
   switch (action) {
+    case 'open-repository':
+      openRepository()
+      break
     case 'minimize':
       minimize()
       break
@@ -112,6 +121,10 @@ const handleMenuAction = (action) => {
     default:
       console.log('Action:', action)
   }
+}
+
+function openRepository () {
+  showPageInModal(PandaOpenRepositoryForm, {}, {width: '30%'})
 }
 </script>
 <style scoped>

@@ -136,6 +136,9 @@ const activeRepository = ref(null)
 /*----Mounted----*/
 onMounted(() => {
   mitter.on('set-active-repository', handleSetActive)
+  if (window.__activeRepository) {
+    handleSetActive(window.__activeRepository)
+  }
 })
 
 onBeforeUnmount(() => {

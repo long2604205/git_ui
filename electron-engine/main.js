@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain, dialog } from 'electron'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 
@@ -32,7 +32,7 @@ function createWindow() {
   })
 
   win.loadFile(join(__dirname, '../dist/index.html'))
-  win.webContents.openDevTools()
+  // win.webContents.openDevTools()
 
   ipcMain.on('close-app', () => win.close())
   ipcMain.on('minimize', () => win.minimize())
@@ -53,6 +53,15 @@ function createWindow() {
     return {
       ramKB: memoryInfo.residentSet
     }
+  })
+
+  ipcMain.handle('dialog:select-folder', async () => {
+    const result = await dialog.showOpenDialog(win, {
+      properties: ['openDirectory']
+    })
+
+    if (result.canceled) return null
+    return result.filePaths[0]
   })
 
   win.on('maximize', () => {

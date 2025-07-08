@@ -9,5 +9,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   toggleMaximize: () => ipcRenderer.send('toggle-maximize'),
   onMaximize: (cb) => ipcRenderer.on('is-maximized', cb),
   onUnmaximize: (cb) => ipcRenderer.on('is-unmaximized', cb),
-  getMemoryInfo: () => ipcRenderer.invoke('get-memory-info')
+  getMemoryInfo: () => ipcRenderer.invoke('get-memory-info'),
+  selectFolder: () => ipcRenderer.invoke('dialog:select-folder'),
 })

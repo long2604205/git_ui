@@ -11,7 +11,11 @@
             <label for="clone-path" class="form-label">Repository Path</label>
             <div class="input-group">
               <input v-model="pathRepositories" type="text" class="form-control" id="clone-path" placeholder="Local directory path">
-              <button class="btn btn-open-local" type="button" id="browse-clone">
+              <button
+                class="btn btn-open-local"
+                type="button"
+                id="browse-clone"
+                @click="chooseFolder">
                 <i class="fas fa-folder-open"></i>
               </button>
             </div>
@@ -47,6 +51,13 @@ onMounted(() => {
     modalInstance = new Modal(modalRef.value)
   }
 })
+
+const chooseFolder = async () => {
+  const selected = await window.electronAPI?.selectFolder()
+  if (selected) {
+    pathRepositories.value = selected
+  }
+}
 
 function openRepository (){
   mitter.emit('open-repository', pathRepositories.value)

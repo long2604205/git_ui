@@ -296,7 +296,7 @@ onMounted(() => {
   }
 
   if (repositories.value.length > 0 && !activeRepository.value) {
-    activeRepository.value = repositories.value[0]
+    setActiveRepository(repositories.value[0])
   }
 
   mitter.on('open-repository', (repoPath) => {
@@ -467,6 +467,8 @@ function toggle(section) {
 function setActiveRepository(repo) {
   activeRepository.value = repo
   mitter.emit('set-active-repository', repo)
+
+  window.__activeRepository = repo
 }
 
 function toggleWorkspacePanel() {

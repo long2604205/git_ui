@@ -234,6 +234,8 @@ const getFileIconClass = (file) => {
       return `fab fa-js-square ${baseClasses} js`
     case 'html':
       return `fab fa-html5 ${baseClasses} html`
+    case 'php':
+      return `fab fa-php ${baseClasses} html`
     default:
       return `fas fa-file ${baseClasses}`
   }

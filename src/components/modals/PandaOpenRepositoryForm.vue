@@ -1,5 +1,6 @@
 <template>
   <base-form
+    ref="openRepositoryForm"
     v-model="visible"
     title="Open Repository">
     <template #content>
@@ -32,21 +33,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { Modal } from 'bootstrap'
-import mitter from '@/plugins/mitter.js'
+import { ref } from 'vue'
 import BaseForm from '@/components/modals/BaseForm.vue'
+import api from '@/plugins/api.js'
+import mitter from '@/plugins/mitter.js'
+
+const openRepositoryForm = ref(null)
 const visible = ref(false)
-
-const modalRef = ref(null)
 const pathRepositories = ref('')
-let modalInstance = null
-
-onMounted(() => {
-  if (modalRef.value) {
-    modalInstance = new Modal(modalRef.value)
-  }
-})
 
 const chooseFolder = async () => {
   const selected = await window.electronAPI?.selectFolder()
@@ -56,21 +50,30 @@ const chooseFolder = async () => {
 }
 
 function openRepository (){
-  mitter.emit('open-repository', pathRepositories.value)
+  handleOpenRepo(pathRepositories.value)
+  openRepositoryForm.value?.close()
+  // mitter.emit('open-repository', pathRepositories.value)
 }
+async function handleOpenRepo(repoPath) {
+  try {
+    const response = await api.post('/git/open-repository', {
+      repo_path: repoPath
+    });
 
-const openModal = () => {
-  if (modalInstance) modalInstance.show()
+    console.log(response.data.data)
+    const result = response.data.data
+
+    if (result) {
+      mitter.emit('open-repository', result)
+
+    } else {
+      console.error('❌ Failed to open repository: No data returned');
+    }
+
+  } catch (error) {
+    console.error('❌ Error opening repository:', error.message);
+  }
 }
-
-const closeModal = () => {
-  if (modalInstance) modalInstance.hide()
-}
-
-defineExpose({
-  openModal,
-  closeModal
-})
 </script>
 <style scoped>
 *{

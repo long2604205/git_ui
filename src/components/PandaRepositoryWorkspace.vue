@@ -300,7 +300,8 @@ onMounted(() => {
   }
 
   mitter.on('open-repository', (repoPath) => {
-    handleOpenRepo(repoPath)
+    repositories.value.push(repoPath);
+    activeRepository.value = repoPath;
   })
 });
 
@@ -473,30 +474,6 @@ function setActiveRepository(repo) {
 
 function toggleWorkspacePanel() {
   isWorkspaceCollapsed.value = !isWorkspaceCollapsed.value
-}
-
-async function handleOpenRepo(repoPath) {
-  try {
-    const response = await api.post('/git/open-repository', {
-      // repo_path: "C:/Users/zhilo/OneDrive/Documents/Project/Training/auto_verse"
-      repo_path: repoPath
-    });
-
-    console.log(response.data.data)
-    const result = response.data.data
-
-    if (result) {
-      repositories.value.push(result);
-      activeRepository.value = result;
-
-      console.log('✅ Repo opened:', result.name);
-    } else {
-      console.error('❌ Failed to open repository: No data returned');
-    }
-
-  } catch (error) {
-    console.error('❌ Error opening repository:', error.message);
-  }
 }
 </script>
 <style scoped>

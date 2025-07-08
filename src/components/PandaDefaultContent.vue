@@ -6,6 +6,7 @@
 
       <div class="col main-content">
         <!--Toolbar-->
+        <button class="btn-primary" @click="showAlert">Hiện thông báo</button>
         <panda-toolbar/>
 
         <!--Commit Panel-->
@@ -13,11 +14,29 @@
       </div>
     </div>
   </div>
+  <alert-notification
+    v-if="show"
+    :message="alertMessage"
+    :type="alertType"
+    :duration="3000"
+  />
 </template>
 <script setup>
 import PandaRepositoryWorkspace from '@/components/PandaRepositoryWorkspace.vue'
 import PandaToolbar from '@/components/PandaToolbar.vue'
 import PandaCommitPanel from '@/components/PandaCommitPanel.vue'
+import { ref } from 'vue'
+import AlertNotification from '@/components/modals/AlertNotification.vue'
+const show = ref(false)
+const alertMessage = ref('')
+const alertType = ref('info')
+
+const showAlert = () => {
+  alertMessage.value = 'Thành công rồi nhé!'
+  alertType.value = 'success'
+  show.value = true
+  setTimeout(() => (show.value = false), 3000)
+}
 </script>
 <style scoped>
 .main-container {

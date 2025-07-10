@@ -11,7 +11,17 @@
 
         <!--Commit Panel-->
         <panda-commit-panel/>
+
+        <!--Git Graph-->
+        <panda-git-log-panel/>
       </div>
+
+      <!--Panda-right-panel-->
+      <panda-right-panel
+        :commit="commitSample"
+        :is-collapsed="isCollapsedSample"
+        @toggle="togglePanel"
+      />
     </div>
   </div>
   <alert-notification
@@ -27,10 +37,30 @@ import PandaToolbar from '@/components/PandaToolbar.vue'
 import PandaCommitPanel from '@/components/PandaCommitPanel.vue'
 import { ref } from 'vue'
 import AlertNotification from '@/components/modals/AlertNotification.vue'
+import PandaRightPanel from '@/components/PandaRightPanel.vue'
+import PandaGitLogPanel from '@/components/PandaGitLogPanel.vue'
 const show = ref(false)
 const alertMessage = ref('')
 const alertType = ref('info')
 
+const commitSample = {
+  message: "Fix login issue on mobile view",
+  hash: "a1b2c3d4",
+  author: "Long Nguyen",
+  email: "long.nguyen@example.com",
+  time: "2025-07-10T10:15:00Z",
+  branch: "feature/login-fix",
+  files: [
+    "src/components/LoginForm.vue",
+    "src/views/LoginPage.vue",
+    "src/utils/validators.js"
+  ]
+}
+
+const isCollapsedSample = ref(false)
+function togglePanel() {
+  isCollapsedSample.value = !isCollapsedSample.value
+}
 // const showAlert = () => {
 //   alertMessage.value = 'Thành công rồi nhé!'
 //   alertType.value = 'success'

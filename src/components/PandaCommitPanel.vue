@@ -124,6 +124,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import mitter from '@/plugins/mitter.js'
+import api from '@/plugins/api.js'
 /*----Data----*/
 const amend = ref(false)
 const signOff = ref(false)
@@ -153,8 +154,8 @@ const canCommit = computed(() =>
 
 const selectedFilePaths = computed(() => {
   return changes.value
-    .filter(file => file.checked)
-    .map(file => file.path)
+    .filter(file => file.checked && file.path && file.name)
+    .map(file => `${file.path}/${file.name}`)
 })
 
 /*----Watch----*/
@@ -175,28 +176,22 @@ watch(changes, () => {
 }, { deep: true })
 
 /*----Method----*/
-function handleCommit(push = false) {
-  const payload = {
-    message: commitMessage.value,
-    files: selectedFilePaths.value,
-    amend: amend.value,
-    signoff: signOff.value,
-    push: push
-  }
-
-  alert(JSON.stringify(payload, null, 2)) // ← Show payload đẹp
-
-  // ✅ Gỡ comment phần bên dưới khi muốn gọi API thật:
-  /*
+async function handleCommit(push = false) {
   try {
-    const res = await axios.post('http://localhost:5000/api/v1/git/commit', payload)
+    const res = await api.post('/commit', {
+      repo_path: activeRepository.value.path,
+      message: commitMessage.value,
+      files: selectedFilePaths.value,
+      amend: amend.value,
+      signoff: signOff.value,
+      push: push
+    });
     alert(res.data.message || 'Commit thành công!')
     commitMessage.value = ''
   } catch (error) {
     alert(error.response?.data?.message || 'Lỗi commit!')
     console.error(error)
   }
-  */
 }
 
 function setAllChecked(checked) {

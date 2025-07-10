@@ -246,15 +246,13 @@ const repositories = ref([
         id: 1,
         name: 'base.css',
         path: 'src\\assets',
-        type: 'css',
-        selected: false
+        type: 'css'
       },
       {
         id: 2,
         name: 'PandaDefaultContent.vue',
         path: 'src\\components',
-        type: 'vue',
-        selected: false
+        type: 'vue'
       }
     ]
   },
@@ -299,9 +297,9 @@ onMounted(() => {
     setActiveRepository(repositories.value[0])
   }
 
-  mitter.on('open-repository', (repoPath) => {
-    repositories.value.push(repoPath);
-    activeRepository.value = repoPath;
+  mitter.on('open-repository', (repo) => {
+    repositories.value.push(repo);
+    activeRepository.value = repo;
   })
 });
 
@@ -456,8 +454,32 @@ function handleContextAction({ action, branch }) {
 }
 
 function switchBranch(branchName) {
+  if (branchName.includes("origin/")) {
+    branchName = branchName.replace("origin/", "");
+  }
   if (activeRepository.value) {
-    activeRepository.value.currentBranch = branchName
+    checkoutBranch(activeRepository.value, branchName)
+  }
+}
+
+async function checkoutBranch(repoPath, branchName) {
+  try {
+    const response = await api.post('/checkout-branch', {
+      repo_path: activeRepository.value.path,
+      branch_name: branchName
+    });
+
+    const result = response.data.data
+
+    if (result) {
+      activeRepository.value.currentBranch = result.currentBranch
+      activeRepository.value.branches.local.push(result.currentBranch)
+    } else {
+      console.error('❌ Failed to open repository: No data returned');
+    }
+
+  } catch (error) {
+    console.error('❌ Error opening repository:', error.message);
   }
 }
 
@@ -468,7 +490,7 @@ function toggle(section) {
 function setActiveRepository(repo) {
   activeRepository.value = repo
   mitter.emit('set-active-repository', repo)
-
+  mitter.emit('push-repository', repo.path)
   window.__activeRepository = repo
 }
 

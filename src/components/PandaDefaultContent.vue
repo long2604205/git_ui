@@ -6,7 +6,7 @@
 
       <div class="col main-content">
         <!--Toolbar-->
-        <button class="btn-primary" @click="showAlert">Hiện thông báo</button>
+<!--        <button class="btn-primary" @click="showAlert">Hiện thông báo</button>-->
         <panda-toolbar/>
 
         <!--Commit Panel-->
@@ -31,12 +31,12 @@ const show = ref(false)
 const alertMessage = ref('')
 const alertType = ref('info')
 
-const showAlert = () => {
-  alertMessage.value = 'Thành công rồi nhé!'
-  alertType.value = 'success'
-  show.value = true
-  setTimeout(() => (show.value = false), 3000)
-}
+// const showAlert = () => {
+//   alertMessage.value = 'Thành công rồi nhé!'
+//   alertType.value = 'success'
+//   show.value = true
+//   setTimeout(() => (show.value = false), 3000)
+// }
 </script>
 <style scoped>
 .main-container {

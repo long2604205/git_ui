@@ -19,7 +19,6 @@
       </div>
     </template>
     <template #footer>
-      <button type="button" class="btn btn-cancel" data-bs-dismiss="modal">Cancel</button>
       <button
         type="button"
         class="btn btn-clone"
@@ -27,6 +26,12 @@
         @click="openRepository"
       >
         <span>Open</span>
+      </button>
+      <button
+        type="button"
+        class="btn btn-cancel"
+        data-bs-dismiss="modal">
+        <span>Cancel</span>
       </button>
     </template>
   </base-form>
@@ -56,7 +61,7 @@ function openRepository (){
 }
 async function handleOpenRepo(repoPath) {
   try {
-    const response = await api.post('/git/open-repository', {
+    const response = await api.post('/open-repository', {
       repo_path: repoPath
     });
 

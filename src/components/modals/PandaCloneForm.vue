@@ -1,75 +1,101 @@
 <template>
-  <div class="modal fade" id="cloneRepoModal" tabindex="-1" ref="modalRef">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Clone Repository</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <div class="mb-3">
-            <label for="clone-url" class="form-label">Repository URL</label>
-            <input type="text" class="form-control" id="clone-url" placeholder="https://github.com/user/repo.git">
-          </div>
-          <div class="mb-3">
-            <label for="clone-path" class="form-label">Local Path</label>
-            <div class="input-group">
-              <input type="text" class="form-control" id="clone-path" placeholder="Local directory path">
-              <button class="btn btn-open-local" type="button" id="browse-clone">
-                <i class="fas fa-folder-open"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-cancel" data-bs-dismiss="modal">Cancel</button>
-          <button type="button" class="btn btn-clone" id="clone-repo-confirm">Clone</button>
+  <base-form
+    ref="openCloneRepositoryForm"
+    v-model="visible"
+    title="Open Repository">
+    <template #content>
+      <div class="mb-3">
+        <label for="clone-url" class="form-label">Repository URL</label>
+        <input
+          v-model="repoUrl"
+          type="text"
+          class="form-control"
+          placeholder="url">
+      </div>
+      <div class="mb-3">
+        <label for="clone-path" class="form-label">Local Path</label>
+        <div class="input-group">
+          <input
+            v-model="localPath"
+            type="text"
+            class="form-control"
+            placeholder="Local directory path">
+          <button
+            class="btn btn-open-local"
+            type="button"
+            @click="chooseFolder">
+            <i class="fas fa-folder-open"></i>
+          </button>
         </div>
       </div>
-    </div>
-  </div>
+    </template>
+    <template #footer>
+      <button
+        type="button"
+        class="btn btn-clone"
+        @click="cloneRepository">
+        <span>Clone</span>
+      </button>
+      <button
+        type="button"
+        class="btn btn-cancel"
+        data-bs-dismiss="modal">
+        <span>Cancel</span>
+      </button>
+    </template>
+  </base-form>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { Modal } from 'bootstrap'
+import BaseForm from '@/components/modals/BaseForm.vue'
+import { ref } from 'vue'
+import api from '@/plugins/api.js'
+import mitter from '@/plugins/mitter.js'
 
-const modalRef = ref(null)
-let modalInstance = null
+const openCloneRepositoryForm = ref(null)
+const visible = ref(false)
+const repoUrl = ref('')
+const localPath = ref('')
 
-onMounted(() => {
-  if (modalRef.value) {
-    modalInstance = new Modal(modalRef.value)
+const chooseFolder = async () => {
+  const selected = await window.electronAPI?.selectFolder()
+  if (selected) {
+    localPath.value = selected
   }
-})
-
-const openModal = () => {
-  if (modalInstance) modalInstance.show()
 }
 
-defineExpose({
-  openModal
-})
+function cloneRepository (){
+  handleCloneRepo(repoUrl.value, localPath.value)
+  openCloneRepositoryForm.value?.close()
+}
+
+async function handleCloneRepo(repoPath, localPath) {
+  try {
+    const response = await api.post('/clone', {
+      repo_url: repoPath,
+      destination: localPath
+    });
+
+    const result = response.data.data
+
+    if (result) {
+      mitter.emit('open-repository', result)
+
+    } else {
+      console.error('❌ Failed to open repository: No data returned');
+    }
+
+  } catch (error) {
+    console.error('❌ Error opening repository:', error.message);
+  }
+}
 </script>
 <style scoped>
 *{
   font-size: 14px;
 }
-.modal-content {
-  background-color: var(--bg-secondary);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
-}
 
-.modal-header {
-  border-bottom: 1px solid var(--border-color);
-}
-
-.modal-footer {
-  border-top: 1px solid var(--border-color);
-}
-
- .btn-cancel, .btn-clone, .btn-clone:disabled {
+.btn-cancel, .btn-clone, .btn-clone:disabled {
   background: var(--bg-tertiary);
   color: var(--text-secondary);
   border: var(--bg-tertiary);

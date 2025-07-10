@@ -11,13 +11,19 @@
           </button>
         </div>
         <div class="toolbar-buttons">
-          <button class="btn btn-toolbar">
+          <button
+            class="btn btn-toolbar"
+            @click="pushRepository"
+          >
             <i class="fas fa-upload"></i>
             <span class="label-toolbar">Push</span>
           </button>
         </div>
         <div class="toolbar-buttons">
-          <button class="btn btn-toolbar">
+          <button
+            class="btn btn-toolbar"
+            @click="pullRepository"
+          >
             <i class="fas fa-download"></i>
             <span class="label-toolbar">Pull</span>
           </button>
@@ -32,17 +38,51 @@
     </div>
   </div>
   <div class="toolbar-line"></div>
-
-  <panda-clone-form ref="cloneModal"/>
 </template>
 <script setup>
-import { ref } from 'vue'
+import { showPageInModal } from '@/services/modals.js'
 import PandaCloneForm from '@/components/modals/PandaCloneForm.vue'
-
-const cloneModal = ref(null);
+import api from '@/plugins/api.js'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
+import mitter from '@/plugins/mitter.js'
+const repoPath = ref('')
 
 const cloneRepository = () => {
-  cloneModal.value?.openModal()
+  showPageInModal(PandaCloneForm, {}, { width: '30%' })
+}
+
+onMounted(() => {
+  mitter.on('push-repository', (path) => {
+    repoPath.value = path
+  })
+});
+
+onBeforeUnmount(() => {
+  mitter.off('push-repository')
+})
+
+async function pushRepository() {
+  try {
+    const res = await api.post('/push', {
+      repo_path: repoPath.value
+    });
+    alert(res.data.message || 'Push thành công!')
+  } catch (error) {
+    alert(error.response?.data?.message || 'Lỗi Push!')
+    console.error(error)
+  }
+}
+
+async function pullRepository() {
+  try {
+    const res = await api.post('/pull', {
+      repo_path: repoPath.value
+    });
+    alert(res.data.message || 'Pull thành công!')
+  } catch (error) {
+    alert(error.response?.data?.message || 'Lỗi pull!')
+    console.error(error)
+  }
 }
 </script>
 <style scoped>

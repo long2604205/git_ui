@@ -51,11 +51,13 @@ import BaseForm from '@/components/modals/BaseForm.vue'
 import { ref } from 'vue'
 import api from '@/plugins/api.js'
 import mitter from '@/plugins/mitter.js'
+import { useLoadingStore } from '@/stores/loadingStore.js'
 
 const openCloneRepositoryForm = ref(null)
 const visible = ref(false)
 const repoUrl = ref('')
 const localPath = ref('')
+const loading = useLoadingStore()
 
 const chooseFolder = async () => {
   const selected = await window.electronAPI?.selectFolder()
@@ -71,6 +73,7 @@ function cloneRepository (){
 
 async function handleCloneRepo(repoPath, localPath) {
   try {
+    loading.show('Cloning...')
     const response = await api.post('/clone', {
       repo_url: repoPath,
       destination: localPath
@@ -80,13 +83,24 @@ async function handleCloneRepo(repoPath, localPath) {
 
     if (result) {
       mitter.emit('open-repository', result)
-
+      mitter.emit('alert', {
+        message: 'Clone successfully!',
+        type: 'success'
+      })
     } else {
-      console.error('❌ Failed to open repository: No data returned');
+      mitter.emit('alert', {
+        message: 'Failed to open repository: No data returned',
+        type: 'error'
+      })
     }
 
   } catch (error) {
-    console.error('❌ Error opening repository:', error.message);
+    mitter.emit('alert', {
+      message: `Error opening repository: ${error.message}`,
+      type: 'error'
+    })
+  } finally {
+    loading.hide()
   }
 }
 </script>

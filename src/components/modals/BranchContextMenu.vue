@@ -8,18 +8,32 @@
   >
     <li @click="() => choose('checkout')">Checkout</li>
     <li @click="() => choose('new-branch')">New Branch from '{{ branch }}'</li>
+    <li @click="() => choose('merge-branch')">Merge '{{ branch }}' into '{{currentBranch}}'</li>
     <li @click="() => choose('delete')">Delete</li>
   </ul>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
+import mitter from '@/plugins/mitter.js'
 
 const visible = ref(false)
 const x = ref(0)
 const y = ref(0)
 const branch = ref('')
 const emit = defineEmits(['action'])
+const currentBranch = ref('')
+
+onMounted(() => {
+  mitter.on('')
+  mitter.on('merge-information', (branch) => {
+    currentBranch.value = branch
+  })
+})
+
+onBeforeUnmount(() => {
+  mitter.off('merge-information')
+})
 
 function open(event, branchName) {
   event.preventDefault()
@@ -53,7 +67,7 @@ defineExpose({ open })
   margin: 0;
   list-style: none;
   z-index: 9999;
-  width: 200px;
+  width: 300px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 .context-menu li {

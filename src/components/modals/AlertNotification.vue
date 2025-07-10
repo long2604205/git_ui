@@ -20,14 +20,15 @@ const props = defineProps({
   },
   duration: {
     type: Number,
-    default: 3000, // milliseconds
+    default: 5000, // milliseconds
   },
 })
 
 const visible = ref(true)
-
+const emit = defineEmits(['close'])
 const close = () => {
   visible.value = false
+  setTimeout(() => emit('close'), 500) // đợi animation fade-out xong mới emit
 }
 
 onMounted(() => {
@@ -46,7 +47,7 @@ onMounted(() => {
 }
 
 .alert-box {
-  background-color: var(--bg-secondary) !important;
+  background-color: var(--bg-secondary);
   color: #fff;
   padding: 10px 16px;
   border-radius: 6px;

@@ -125,6 +125,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import mitter from '@/plugins/mitter.js'
 import api from '@/plugins/api.js'
+import { useLoadingStore } from '@/stores/loadingStore.js'
 /*----Data----*/
 const amend = ref(false)
 const signOff = ref(false)
@@ -133,6 +134,7 @@ const changes = ref([])
 const changesSectionExpanded = ref(true)
 const areAllFilesChecked = ref(false)
 const activeRepository = ref(null)
+const loading = useLoadingStore()
 
 /*----Mounted----*/
 onMounted(() => {
@@ -178,6 +180,7 @@ watch(changes, () => {
 /*----Method----*/
 async function handleCommit(push = false) {
   try {
+    loading.show('Commiting...')
     const res = await api.post('/commit', {
       repo_path: activeRepository.value.path,
       message: commitMessage.value,
@@ -186,11 +189,19 @@ async function handleCommit(push = false) {
       signoff: signOff.value,
       push: push
     });
-    alert(res.data.message || 'Commit thành công!')
+    mitter.emit('alert', {
+      message: res.data.message || 'Commit thành công!',
+      type: 'success',
+    })
     commitMessage.value = ''
   } catch (error) {
-    alert(error.response?.data?.message || 'Lỗi commit!')
+    mitter.emit('alert', {
+      message: error.response?.data?.message || 'Lỗi commit!',
+      type: 'error',
+    })
     console.error(error)
+  } finally {
+    loading.hide()
   }
 }
 

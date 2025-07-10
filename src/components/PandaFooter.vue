@@ -2,9 +2,6 @@
   <div class="status-bar">
     <div class="d-flex align-items-center justify-content-between px-3">
       <div class="status-left">
-        <span class="status-item">
-          <i class="fas fa-code me-1"></i>PHP: 8.2
-        </span>
         <span class="status-item" id="current-repo-status">
           <i class="fas fa-folder me-1"></i>No repository
         </span>
@@ -16,6 +13,9 @@
         </span>
       </div>
       <div class="status-right">
+        <span class="status-item">
+          <inline-loading :visible="loading.isLoading" :message="loading.message"/>
+        </span>
         <span class="status-item">
           <i class="fas fa-palette me-1"></i>Material Darker
         </span>
@@ -32,7 +32,10 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import InlineLoading from '@/components/Loading/InlineLoading.vue'
+import { useLoadingStore } from '@/stores/loadingStore.js'
 
+const loading = useLoadingStore()
 const memoryUsed = ref('Loading...')
 const currentTime = ref('--:--:--')
 

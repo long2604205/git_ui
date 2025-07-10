@@ -25,10 +25,10 @@
     </div>
   </div>
   <alert-notification
-    v-if="show"
+    v-if="showAlert"
     :message="alertMessage"
     :type="alertType"
-    :duration="3000"
+    @close="showAlert = false"
   />
 </template>
 <script setup>
@@ -39,9 +39,16 @@ import { ref } from 'vue'
 import AlertNotification from '@/components/modals/AlertNotification.vue'
 import PandaRightPanel from '@/components/PandaRightPanel.vue'
 import PandaGitLogPanel from '@/components/PandaGitLogPanel.vue'
-const show = ref(false)
+import mitter from '@/plugins/mitter.js'
+const showAlert = ref(false)
 const alertMessage = ref('')
 const alertType = ref('info')
+
+mitter.on('alert', ({ message, type = 'info' }) => {
+  alertMessage.value = message
+  alertType.value = type
+  showAlert.value = true
+})
 
 const commitSample = {
   message: "Fix login issue on mobile view",

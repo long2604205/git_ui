@@ -160,7 +160,7 @@
                     v-for="branch in filteredLocalBranches"
                     :key="'local-' + branch.raw"
                     :class="{ active: branch.raw === activeRepository.currentBranch }"
-                    @contextmenu="contextMenu?.open($event, branch.raw)"
+                    @contextmenu="openContextMenuLocal($event, branch)"
                   >
                     <i class="fas fa-code-branch text-success me-1"></i>
                     <span v-html="branch.highlighted"></span>
@@ -195,7 +195,6 @@
     </div>
     <div class="resizer-horizontal" @mousedown="startResizeContainer" v-if="!isWorkspaceCollapsed"></div>
   </div>
-
   <!--  Modal-->
   <panda-open-repository-form ref="openModal"/>
   <branch-context-menu ref="contextMenu" @action="handleContextAction"/>
@@ -207,6 +206,7 @@ import PandaOpenRepositoryForm from '@/components/modals/PandaOpenRepositoryForm
 import BranchContextMenu from '@/components/modals/BranchContextMenu.vue'
 import mitter from '@/plugins/mitter.js'
 import api from '@/plugins/api.js'
+import { useLoadingStore } from '@/stores/loadingStore.js'
 
 /*----Data----*/
 const showActions = ref(true);
@@ -284,7 +284,7 @@ const repositories = ref([
     ]
   }
 ])
-
+const loading = useLoadingStore()
 /*----Mounted----*/
 onMounted(() => {
   const container = document.querySelector('.workspace-split')
@@ -447,9 +447,40 @@ function highlightMatch(text, keyword) {
   return `${before}<span class="highlight">${match}</span>${after}`
 }
 
+function openContextMenuLocal(event, branch)
+{
+  mitter.emit('merge-information', activeRepository.value.currentBranch)
+  contextMenu.value?.open(event, branch.raw)
+}
+
 function handleContextAction({ action, branch }) {
   if (action === 'checkout') {
     switchBranch(branch)
+  }
+  if (action === 'merge-branch') {
+    mergeBranch(branch)
+  }
+}
+
+async function mergeBranch(branch) {
+  try {
+    loading.show('Merging branch...');
+    const res = await api.post('/merge', {
+      repo_path: activeRepository.value.path,
+      source_branch: branch
+    });
+    mitter.emit('alert', {
+      message: res.data.message || 'Merge thành công!',
+      type: 'success',
+    })
+  } catch (error) {
+    mitter.emit('alert', {
+      message: error.response?.data?.message || 'Lỗi Merge!',
+      type: 'error',
+    })
+    console.error(error)
+  } finally {
+    loading.hide()
   }
 }
 
@@ -464,6 +495,8 @@ function switchBranch(branchName) {
 
 async function checkoutBranch(repoPath, branchName) {
   try {
+    loading.show(`Switching to branch "${branchName}"...`)
+
     const response = await api.post('/checkout-branch', {
       repo_path: activeRepository.value.path,
       branch_name: branchName
@@ -473,13 +506,27 @@ async function checkoutBranch(repoPath, branchName) {
 
     if (result) {
       activeRepository.value.currentBranch = result.currentBranch
-      activeRepository.value.branches.local.push(result.currentBranch)
+      if (!activeRepository.value.branches.local.includes(result.currentBranch)) {
+        activeRepository.value.branches.local.push(result.currentBranch)
+      }
+      mitter.emit('alert', {
+        message: `✅ Switched to branch "${result.currentBranch}"`,
+        type: 'success'
+      })
     } else {
-      console.error('❌ Failed to open repository: No data returned');
+      mitter.emit('alert', {
+        message: '❌ Failed to open repository: No data returned',
+        type: 'error'
+      })
     }
 
   } catch (error) {
-    console.error('❌ Error opening repository:', error.message);
+    mitter.emit('alert', {
+      message: `Checkout error: ${error.message}`,
+      type: 'error'
+    })
+  } finally {
+    loading.hide()
   }
 }
 
@@ -487,11 +534,70 @@ function toggle(section) {
   collapsedTree.value[section] = !collapsedTree.value[section]
 }
 
-function setActiveRepository(repo) {
-  activeRepository.value = repo
-  mitter.emit('set-active-repository', repo)
-  mitter.emit('push-repository', repo.path)
-  window.__activeRepository = repo
+// function setActiveRepository(repo) {
+//   activeRepository.value = repo
+//   mitter.emit('set-active-repository', repo)
+//   mitter.emit('push-repository', repo.path)
+//   window.__activeRepository = repo
+// }
+
+async function setActiveRepository(repo) {
+  try {
+    loading.show(`Fetching repository "${repo.name}"...`)
+
+    // 1. Gọi API mở repository mới
+    const response = await api.post('/open-repository', {
+      repo_path: repo.path,
+    })
+
+    const result = response.data.data
+
+    if (!result) {
+      mitter.emit('alert', {
+        message: '⚠️ Failed to open repository',
+        type: 'error',
+      })
+      return
+    }
+
+    // 2. Tìm index repo cũ trùng path (nếu có)
+    const existingIndex = repositories.value.findIndex(r => r.path === repo.path)
+
+    if (existingIndex !== -1) {
+      // Xoá repo cũ
+      repositories.value.splice(existingIndex, 1)
+
+      // Thêm lại repo mới vào đúng vị trí cũ
+      repositories.value.splice(existingIndex, 0, result)
+    } else {
+      // Nếu chưa có, thêm vào cuối
+      repositories.value.push(result)
+    }
+
+    // 3. Gán làm repo active (dùng bản mới)
+    activeRepository.value = result
+
+    // 4. Emit các sự kiện liên quan (dùng result)
+    mitter.emit('set-active-repository', result)
+    mitter.emit('push-repository', result.path)
+
+    // 5. Gán global
+    window.__activeRepository = result
+
+    // 6. Thông báo
+    mitter.emit('alert', {
+      message: `✅ Opened repository: ${result.name || result.path}`,
+      type: 'success',
+    })
+
+  } catch (error) {
+    mitter.emit('alert', {
+      message: `❌ Failed to open repository: ${error.message}`,
+      type: 'error',
+    })
+  } finally {
+    loading.hide()
+  }
 }
 
 function toggleWorkspacePanel() {

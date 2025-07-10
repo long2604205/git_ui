@@ -45,7 +45,9 @@ import PandaCloneForm from '@/components/modals/PandaCloneForm.vue'
 import api from '@/plugins/api.js'
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import mitter from '@/plugins/mitter.js'
+import { useLoadingStore } from '@/stores/loadingStore.js'
 const repoPath = ref('')
+const loading = useLoadingStore()
 
 const cloneRepository = () => {
   showPageInModal(PandaCloneForm, {}, { width: '30%' })
@@ -63,25 +65,42 @@ onBeforeUnmount(() => {
 
 async function pushRepository() {
   try {
+    loading.show('Pushing...')
     const res = await api.post('/push', {
       repo_path: repoPath.value
     });
-    alert(res.data.message || 'Push thành công!')
+    mitter.emit('alert', {
+      message: res.data.message || 'Push successfully!',
+      type: 'success'
+    })
   } catch (error) {
-    alert(error.response?.data?.message || 'Lỗi Push!')
-    console.error(error)
+    mitter.emit('alert', {
+      message: error.response?.data?.message || 'Push failed!',
+      type: 'error'
+    })
+  } finally {
+    loading.hide()
   }
 }
 
 async function pullRepository() {
   try {
+    loading.show('Pulling...')
     const res = await api.post('/pull', {
       repo_path: repoPath.value
     });
-    alert(res.data.message || 'Pull thành công!')
+    mitter.emit('alert', {
+      message: res.data.message || 'Pull successfully!',
+      type: 'success'
+    })
   } catch (error) {
-    alert(error.response?.data?.message || 'Lỗi pull!')
+    mitter.emit('alert', {
+      message: error.response?.data?.message || 'Pull failed!',
+      type: 'error'
+    })
     console.error(error)
+  } finally {
+    loading.hide()
   }
 }
 </script>

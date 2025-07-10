@@ -42,11 +42,12 @@ import { ref } from 'vue'
 import BaseForm from '@/components/modals/BaseForm.vue'
 import api from '@/plugins/api.js'
 import mitter from '@/plugins/mitter.js'
+import { useLoadingStore } from '@/stores/loadingStore.js'
 
 const openRepositoryForm = ref(null)
 const visible = ref(false)
 const pathRepositories = ref('')
-
+const loading = useLoadingStore()
 const chooseFolder = async () => {
   const selected = await window.electronAPI?.selectFolder()
   if (selected) {
@@ -61,22 +62,33 @@ function openRepository (){
 }
 async function handleOpenRepo(repoPath) {
   try {
+    loading.show('Opening repository')
     const response = await api.post('/open-repository', {
       repo_path: repoPath
     });
 
-    console.log(response.data.data)
     const result = response.data.data
 
     if (result) {
       mitter.emit('open-repository', result)
-
+      mitter.emit('alert', {
+        message: 'Open repository successfully',
+        type: 'success'
+      })
     } else {
-      console.error('❌ Failed to open repository: No data returned');
+      mitter.emit('alert', {
+        message: `Can not open repository for ${repoPath}`,
+        type: 'error'
+      })
     }
 
   } catch (error) {
-    console.error('❌ Error opening repository:', error.message);
+    mitter.emit('alert', {
+      message: `Error: ${error.message}`,
+      type: 'error'
+    })
+  } finally {
+    loading.hide()
   }
 }
 </script>

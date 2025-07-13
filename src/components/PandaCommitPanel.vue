@@ -46,6 +46,7 @@
                   v-for="file in changes"
                   :key="file.id"
                   class="file-item"
+                  @dblclick="showDiffFile(file)"
                 >
                   <input
                     type="checkbox"
@@ -126,6 +127,8 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import mitter from '@/plugins/mitter.js'
 import api from '@/plugins/api.js'
 import { useLoadingStore } from '@/stores/loadingStore.js'
+import { showPageInModal } from '@/services/modals.js'
+import CompareCode from '@/components/modals/CompareCode.vue'
 /*----Data----*/
 const amend = ref(false)
 const signOff = ref(false)
@@ -249,6 +252,11 @@ const getFileIconClass = (file) => {
 
 function handleSetActive(repo) {
   activeRepository.value = repo
+}
+
+function showDiffFile (file) {
+  console.log('showDiffFile', file)
+  showPageInModal(CompareCode, {}, {width: '90%'})
 }
 </script>
 

@@ -29,7 +29,10 @@
           </button>
         </div>
         <div class="toolbar-buttons">
-          <button class="btn btn-toolbar">
+          <button
+            class="btn btn-toolbar"
+            @click="CompareCodeDiff"
+          >
             <i class="fa-solid fa-code-compare"></i>
             <span class="label-toolbar">Fetch</span>
           </button>
@@ -46,6 +49,7 @@ import api from '@/plugins/api.js'
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import mitter from '@/plugins/mitter.js'
 import { useLoadingStore } from '@/stores/loadingStore.js'
+import CompareCode from '@/components/modals/CompareCode.vue'
 const repoPath = ref('')
 const loading = useLoadingStore()
 
@@ -102,6 +106,10 @@ async function pullRepository() {
   } finally {
     loading.hide()
   }
+}
+
+function CompareCodeDiff() {
+  showPageInModal(CompareCode, {}, {width: '90%'})
 }
 </script>
 <style scoped>

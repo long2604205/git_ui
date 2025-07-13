@@ -32,15 +32,15 @@
     <template #footer>
       <button
         type="button"
-        class="btn btn-clone"
-        @click="cloneRepository">
-        <span>Clone</span>
-      </button>
-      <button
-        type="button"
         class="btn btn-cancel"
         data-bs-dismiss="modal">
         <span>Cancel</span>
+      </button>
+      <button
+        type="button"
+        class="btn btn-clone"
+        @click="cloneRepository">
+        <span>Clone</span>
       </button>
     </template>
   </base-form>

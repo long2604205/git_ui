@@ -21,17 +21,17 @@
     <template #footer>
       <button
         type="button"
+        class="btn btn-cancel"
+        data-bs-dismiss="modal">
+        <span>Cancel</span>
+      </button>
+      <button
+        type="button"
         class="btn btn-clone"
         id="clone-repo-confirm"
         @click="openRepository"
       >
         <span>Open</span>
-      </button>
-      <button
-        type="button"
-        class="btn btn-cancel"
-        data-bs-dismiss="modal">
-        <span>Cancel</span>
       </button>
     </template>
   </base-form>

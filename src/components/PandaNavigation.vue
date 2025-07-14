@@ -50,9 +50,10 @@
 
 <script setup>
 import PandaMenuDropdown from './PandaMenuDropdown.vue'
-import { onMounted, ref } from 'vue'
+import { defineAsyncComponent, onMounted, ref } from 'vue'
 import { showPageInModal } from '@/services/modals.js'
-import PandaOpenRepositoryForm from '@/components/modals/PandaOpenRepositoryForm.vue'
+
+const openRepositoryForm = defineAsyncComponent(() => import('@/components/modals/PandaOpenRepositoryForm.vue'))
 
 const isMaximized = ref(false)
 const minimize = () => window.electronAPI?.minimize()
@@ -124,7 +125,7 @@ const handleMenuAction = (action) => {
 }
 
 function openRepository () {
-  showPageInModal(PandaOpenRepositoryForm, {}, {width: '30%'})
+  showPageInModal(openRepositoryForm, {}, {width: '30%'})
 }
 </script>
 <style scoped>
